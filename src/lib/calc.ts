@@ -118,6 +118,19 @@ export const SUDOR_L_POR_HORA = 0.8;
 export const SUDOR = { na: 40, k: 5 };
 
 /**
+ * Sodio diario para un adulto sano según James DiNicolantonio, «La solución está en la sal»
+ * (The Salt Fix, 2017): 3–6 g de sodio, unos 8–15 g de sal, incluido el de los alimentos.
+ * A esa base se suma el sodio que se pierde sudando.
+ */
+export const SODIO_BASE_G: [number, number] = [3, 6];
+/** Edad mínima (años) a la que se muestra el rango de sodio, pensado para adultos. */
+export const EDAD_MINIMA_SODIO = 16;
+/** Gramos de sal (NaCl) por gramo de sodio: 58,44 / 22,99. */
+export const SAL_POR_SODIO = 58.44 / 22.99;
+/** Gramos de sal en una cucharadita rasa de sal de mesa. */
+export const SAL_POR_CUCHARADITA = 6;
+
+/**
  * Agua total diaria recomendada (L), incluida la de los alimentos.
  * Base: ingesta adecuada de la EFSA (2,5 L hombres, 2,0 L mujeres) o 35 mL/kg si es mayor,
  * más la pérdida estimada por sudor y un extra si hace calor.
@@ -127,6 +140,7 @@ export function necesidadAgua(sexo: Sexo, pesoKg: number, ejercicioMin: number, 
   const sudor = (ejercicioMin / 60) * SUDOR_L_POR_HORA * (calor ? 1.5 : 1);
   const clima = calor ? 0.5 : 0;
   const total = base + sudor + clima;
+  const sodioPerdidoG = (sudor * SUDOR.na * 22.99) / 1000;
   return {
     base,
     sudor,
@@ -134,7 +148,9 @@ export function necesidadAgua(sexo: Sexo, pesoKg: number, ejercicioMin: number, 
     total,
     /** ~80 % de la ingesta total proviene de bebidas. */
     bebida: total * 0.8,
-    sodioPerdidoG: (sudor * SUDOR.na * 22.99) / 1000,
+    sodioPerdidoG,
+    /** Rango de sodio diario (g): base de DiNicolantonio más la reposición del sudor. */
+    sodioRecomendadoG: SODIO_BASE_G.map((g) => g + sodioPerdidoG) as [number, number],
     potasioPerdidoG: (sudor * SUDOR.k * 39.1) / 1000,
   };
 }

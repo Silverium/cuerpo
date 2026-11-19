@@ -1,0 +1,22 @@
+{
+	"workbench.colorCustomizations": {
+		"editorBracketHighlight.foreground1": "#ff2b2b",
+		"editorBracketHighlight.foreground2": "#ff8800",
+		"editorBracketHighlight.foreground3": "#c5a803",
+		"editorBracketHighlight.foreground4": "#20c720",
+		"editorBracketHighlight.foreground5": "#4bd8dd",
+		"editorBracketMatch.background": "#000000",
+		"editorBracketMatch.border": "#ff0000",
+		"activityBar.background": "#464F0E",
+		"titleBar.activeBackground": "#A8BE21",
+		"titleBar.activeForeground": "#181B05",
+		"titleBar.inactiveBackground": "#464F0E",
+		"titleBar.inactiveForeground": "#181B05",
+		"statusBar.background": "#556011",
+		"statusBar.foreground": "#FAFCEC",
+		"statusBar.debuggingBackground": "#556011",
+		"statusBar.debuggingForeground": "#FAFCEC",
+		"statusBar.noFolderBackground": "#556011",
+		"statusBar.noFolderForeground": "#FAFCEC"
+	}
+}
