@@ -1,0 +1,13 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cuerpo",
+  "compatibility_date": "2026-11-19",
+  // Sitio estático: solo assets, sin código de Worker.
+  "assets": {
+    "directory": "./dist"
+  },
+  "routes": [
+    { "pattern": "cuerpo.soldeplata.dev", "custom_domain": true }
+  ],
+  "workers_dev": false
+}

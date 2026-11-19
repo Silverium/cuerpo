@@ -8,6 +8,8 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "build:cf": "DEPLOY_TARGET=cloudflare astro build",
+    "deploy:cf": "npm run build:cf && wrangler deploy",
     "check": "astro check",
     "preview": "astro preview",
     "astro": "astro"
@@ -17,6 +19,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "wrangler": "^4.165.0"
   }
 }

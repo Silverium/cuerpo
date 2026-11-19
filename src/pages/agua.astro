@@ -148,6 +148,11 @@ import { ELECTROLITOS } from '../lib/calc';
               <div class="s">~80 %; el resto viene de la comida</div>
             </div>
             <div class="stat">
+              <div class="k">Sal al día</div>
+              <div class="v" id="need-na">–</div>
+              <div class="s" id="need-salt"></div>
+            </div>
+            <div class="stat">
               <div class="k">Sodio perdido en el sudor</div>
               <div class="v" id="sweat-na">–</div>
               <div class="s" id="sweat-salt"></div>
@@ -162,6 +167,13 @@ import { ELECTROLITOS } from '../lib/calc';
             Base: ingesta adecuada de la EFSA (2 L mujeres, 2,5 L hombres) o 35 mL/kg si es mayor, más ~0,8 L de
             sudor por hora de ejercicio. La sudoración real varía entre 0,5 y 2 L/h: pésate antes y después de
             entrenar para conocer la tuya.
+          </p>
+          <p class="note">
+            Sal: 8–15 g al día (3–6 g de sodio), incluida la de la comida, según James DiNicolantonio en «La
+            solución está en la sal», más la que pierdes sudando. Solo se calcula a partir de 16 años. Una dieta baja en carbohidratos, el café
+            o algunos diuréticos aumentan la necesidad. Es más que el límite de la OMS (menos de 2 g de sodio): si
+            tienes hipertensión sensible a la sal, enfermedad renal o insuficiencia cardiaca, consúltalo con tu
+            médico.
           </p>
         </section>
 
@@ -227,6 +239,9 @@ import { ELECTROLITOS } from '../lib/calc';
     deficitAguaLibre,
     estado,
     RANGOS,
+    SAL_POR_SODIO,
+    SAL_POR_CUCHARADITA,
+    EDAD_MINIMA_SODIO,
     type Sexo,
     type Estado,
   } from '../lib/calc';
@@ -316,9 +331,21 @@ import { ELECTROLITOS } from '../lib/calc';
       .filter(Boolean)
       .join(' · ');
     $('need-drink').textContent = `${f1.format(n.bebida)} L`;
+    // El rango de DiNicolantonio es para adultos: no lo mostramos a menores de 16 años.
+    if (edad < EDAD_MINIMA_SODIO) {
+      $('need-na').textContent = '–';
+      $('need-salt').textContent = `solo a partir de ${EDAD_MINIMA_SODIO} años: consulta con tu pediatra`;
+    } else {
+      const [naMin, naMax] = n.sodioRecomendadoG;
+      const [salMin, salMax] = [naMin * SAL_POR_SODIO, naMax * SAL_POR_SODIO];
+      $('need-na').textContent = `${f0.format(salMin)}–${f0.format(salMax)} g`;
+      $('need-salt').textContent =
+        `≈ ${f1.format(naMin)}–${f1.format(naMax)} g de sodio · ` +
+        `${f1.format(salMin / SAL_POR_CUCHARADITA)}–${f1.format(salMax / SAL_POR_CUCHARADITA)} cucharaditas`;
+    }
     $('sweat-na').textContent = n.sodioPerdidoG > 0 ? grams(n.sodioPerdidoG) : '0 g';
     $('sweat-salt').textContent =
-      n.sodioPerdidoG > 0 ? `≈ ${grams(n.sodioPerdidoG * 2.54)} de sal` : 'sin ejercicio indicado';
+      n.sodioPerdidoG > 0 ? `≈ ${grams(n.sodioPerdidoG * SAL_POR_SODIO)} de sal` : 'sin ejercicio indicado';
     $('sweat-k').textContent = n.potasioPerdidoG > 0 ? grams(n.potasioPerdidoG) : '0 g';
 
     /* Analítica */
