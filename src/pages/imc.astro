@@ -1,0 +1,263 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ProfileFields from '../components/ProfileFields.astro';
+import NumberField from '../components/NumberField.astro';
+import { CATEGORIAS_IMC } from '../lib/calc';
+
+const SCALE_MIN = 15;
+const SCALE_MAX = 40;
+let prev = SCALE_MIN;
+const segments = CATEGORIAS_IMC.map((c) => {
+  const to = Math.min(c.max, SCALE_MAX);
+  const seg = { ...c, width: ((to - prev) / (SCALE_MAX - SCALE_MIN)) * 100 };
+  prev = to;
+  return seg;
+}).filter((s) => s.width > 0);
+---
+
+<Layout
+  title="Calculadora de IMC · cuerpo"
+  description="Calcula tu índice de masa corporal, tu rango de peso saludable y el índice cintura-altura."
+>
+  <section class="page-head">
+    <h1>Índice de masa corporal</h1>
+    <p>
+      El IMC relaciona peso y altura (kg/m²). Es un cribado rápido: no distingue músculo de grasa, así que
+      complétalo con el índice cintura-altura si puedes medirte la cintura.
+    </p>
+  </section>
+
+  <div class="calc">
+    <form class="card" id="form" autocomplete="off">
+      <ProfileFields />
+      <fieldset>
+        <legend>Opcional</legend>
+        <NumberField name="cintura" label="Perímetro de cintura" unit="cm" min={30} max={250} placeholder="p. ej. 80" />
+        <p class="hint">Mídela a la altura del ombligo, al final de una espiración normal.</p>
+      </fieldset>
+      <div class="actions">
+        <button type="button" class="primary" data-share>Copiar enlace</button>
+        <button type="reset">Restablecer</button>
+      </div>
+    </form>
+
+    <div class="stack">
+      <section class="card hidden" id="empty">
+        <p class="empty">Introduce tu altura y tu peso para ver el resultado.</p>
+      </section>
+
+      <section class="card" id="result">
+        <h2>Tu IMC</h2>
+        <div class="big">
+          <strong id="imc">–</strong>
+          <span class="unit">kg/m²</span>
+          <span class="badge" id="categoria"></span>
+        </div>
+
+        <div class="scale" aria-hidden="true">
+          <div class="bar">
+            {segments.map((s) => <span data-tone={s.tone} style={`width:${s.width}%`} title={s.label} />)}
+          </div>
+          <span class="marker" id="marker"></span>
+          <div class="ticks">
+            {[15, 18.5, 25, 30, 35, 40].map((t) => (
+              <span style={`left:${((t - SCALE_MIN) / (SCALE_MAX - SCALE_MIN)) * 100}%`}>{String(t).replace('.', ',')}</span>
+            ))}
+          </div>
+        </div>
+
+        <p class="note hidden" id="menor">
+          Para menores de 18 años el IMC se interpreta con percentiles por edad y sexo (tablas de la OMS); la
+          clasificación de adultos no aplica.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>Detalles</h2>
+        <div class="stats">
+          <div class="stat">
+            <div class="k">Peso saludable para tu altura</div>
+            <div class="v" id="rango">–</div>
+            <div class="s">IMC entre 18,5 y 24,9</div>
+          </div>
+          <div class="stat">
+            <div class="k" id="dif-k">Diferencia con el rango</div>
+            <div class="v" id="dif">–</div>
+            <div class="s" id="dif-s"></div>
+          </div>
+          <div class="stat">
+            <div class="k">IMC prime</div>
+            <div class="v" id="prime">–</div>
+            <div class="s">IMC ÷ 25 (1,0 = límite superior normal)</div>
+          </div>
+          <div class="stat">
+            <div class="k">Índice cintura-altura</div>
+            <div class="v" id="ica">–</div>
+            <div class="s" id="ica-s">Añade tu cintura</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Clasificación (OMS, adultos)</h2>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Categoría</th><th>IMC</th></tr></thead>
+            <tbody id="tabla">
+              {
+                CATEGORIAS_IMC.map((c, i) => {
+                  const from = i === 0 ? null : CATEGORIAS_IMC[i - 1].max;
+                  const fmt = (n: number) => String(n).replace('.', ',');
+                  const range =
+                    from == null ? `< ${fmt(c.max)}` : c.max === Infinity ? `≥ ${fmt(from)}` : `${fmt(from)} – ${fmt(c.max)}`;
+                  return (
+                    <tr data-label={c.label}>
+                      <td><span class="dot" data-tone={c.tone} />{c.label}</td>
+                      <td>{range}</td>
+                    </tr>
+                  );
+                })
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .scale {
+    position: relative;
+    margin: 1.5rem 0 0.5rem;
+    padding-bottom: 1.4rem;
+  }
+
+  .bar {
+    display: flex;
+    height: 12px;
+    border-radius: 999px;
+    overflow: hidden;
+    gap: 2px;
+  }
+
+  .bar span {
+    background: var(--tone);
+    opacity: 0.75;
+  }
+
+  .marker {
+    position: absolute;
+    top: -6px;
+    width: 4px;
+    height: 24px;
+    margin-left: -2px;
+    border-radius: 2px;
+    background: var(--text);
+    box-shadow: 0 0 0 2px var(--surface);
+    transition: left 0.25s ease;
+  }
+
+  .ticks {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 18px;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  .ticks span {
+    position: absolute;
+    transform: translateX(-50%);
+  }
+
+  .ticks span:first-child {
+    transform: none;
+  }
+
+  .ticks span:last-child {
+    transform: translateX(-100%);
+  }
+
+  .dot {
+    display: inline-block;
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+    background: var(--tone);
+    margin-right: 0.5rem;
+  }
+
+  tr.current td {
+    font-weight: 700;
+    background: var(--surface-2);
+  }
+</style>
+
+<script>
+  import { syncForm, bindShareButton, num } from '../lib/sync';
+  import { imc, categoriaImc, pesoSaludable, indiceCinturaAltura } from '../lib/calc';
+
+  const SCALE_MIN = 15;
+  const SCALE_MAX = 40;
+  const f1 = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 1, minimumFractionDigits: 1 });
+  const f2 = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+  const $ = (id: string) => document.getElementById(id)!;
+
+  const form = document.getElementById('form') as HTMLFormElement;
+  bindShareButton(form.querySelector('[data-share]'));
+
+  syncForm(form, 'imc', (v) => {
+    const altura = num(v.altura);
+    const peso = num(v.peso);
+    const edad = num(v.edad);
+    const cintura = num(v.cintura);
+    const valid = altura != null && peso != null && altura > 0 && peso > 0;
+
+    $('empty').classList.toggle('hidden', valid);
+    $('result').classList.toggle('hidden', !valid);
+    $('menor').classList.toggle('hidden', !(edad != null && edad < 18));
+
+    if (!valid) {
+      for (const id of ['rango', 'dif', 'prime', 'ica']) $(id).textContent = '–';
+      return;
+    }
+
+    const valor = imc(peso, altura);
+    const cat = categoriaImc(valor);
+    $('imc').textContent = f1.format(valor);
+    $('categoria').textContent = cat.label;
+    $('categoria').dataset.tone = cat.tone;
+    const pct = ((Math.min(Math.max(valor, SCALE_MIN), SCALE_MAX) - SCALE_MIN) / (SCALE_MAX - SCALE_MIN)) * 100;
+    $('marker').style.left = `${pct}%`;
+
+    for (const row of document.querySelectorAll<HTMLTableRowElement>('#tabla tr')) {
+      row.classList.toggle('current', row.dataset.label === cat.label);
+    }
+
+    const [min, max] = pesoSaludable(altura);
+    $('rango').textContent = `${f1.format(min)} – ${f1.format(max)} kg`;
+    if (peso < min) {
+      $('dif').textContent = `+${f1.format(min - peso)} kg`;
+      $('dif-s').textContent = 'para llegar al mínimo';
+    } else if (peso > max) {
+      $('dif').textContent = `−${f1.format(peso - max)} kg`;
+      $('dif-s').textContent = 'para llegar al máximo';
+    } else {
+      $('dif').textContent = '0 kg';
+      $('dif-s').textContent = 'Estás dentro del rango';
+    }
+
+    $('prime').textContent = f2.format(valor / 25);
+
+    if (cintura != null && cintura > 0) {
+      const ica = indiceCinturaAltura(cintura, altura);
+      $('ica').textContent = f2.format(ica.valor);
+      $('ica-s').innerHTML = `<span class="badge" data-tone="${ica.tone}">${ica.label}</span>`;
+    } else {
+      $('ica').textContent = '–';
+      $('ica-s').textContent = 'Añade tu cintura';
+    }
+  });
+</script>
