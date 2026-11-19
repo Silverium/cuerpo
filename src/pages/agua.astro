@@ -1,0 +1,370 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ProfileFields from '../components/ProfileFields.astro';
+import NumberField from '../components/NumberField.astro';
+import { ELECTROLITOS } from '../lib/calc';
+---
+
+<Layout
+  title="Agua y electrolitos · cuerpo"
+  description="Estima tu agua corporal total, cómo se reparte entre compartimentos, los electrolitos disueltos y cuánta agua necesitas al día."
+>
+  <section class="page-head">
+    <h1>Agua y electrolitos</h1>
+    <p>
+      Estimación del agua corporal total con las fórmulas de Watson y de Hume-Weyers, su reparto entre
+      compartimentos y la cantidad de sodio, potasio y demás electrolitos disueltos en ella.
+    </p>
+  </section>
+
+  <div class="calc">
+    <form class="card" id="form" autocomplete="off">
+      <ProfileFields />
+
+      <fieldset>
+        <legend>Actividad</legend>
+        <NumberField name="ejercicio" label="Ejercicio al día" unit="min" min={0} max={600} step={5} value="30" />
+        <label class="check"><input type="checkbox" name="calor" value="1" /> Hace calor o sudo mucho</label>
+      </fieldset>
+
+      <details id="lab-details">
+        <summary>Analítica de sangre (opcional)</summary>
+        <fieldset style="margin-top: 0.75rem">
+          <NumberField name="na" label="Sodio (Na⁺)" unit="mmol/L" min={90} max={200} placeholder="135–145" />
+          <NumberField name="k" label="Potasio (K⁺)" unit="mmol/L" min={1} max={10} placeholder="3,5–5,0" />
+          <NumberField name="cl" label="Cloro (Cl⁻)" unit="mmol/L" min={60} max={150} placeholder="98–107" />
+          <NumberField name="hco3" label="Bicarbonato (HCO₃⁻)" unit="mmol/L" min={2} max={60} placeholder="22–29" />
+          <NumberField name="glucosa" label="Glucosa" unit="mg/dL" min={10} max={2000} placeholder="70–100" />
+          <NumberField name="urea" label="Urea" unit="mg/dL" min={1} max={500} placeholder="15–45" />
+        </fieldset>
+      </details>
+
+      <div class="actions">
+        <button type="button" class="primary" data-share>Copiar enlace</button>
+        <button type="reset">Restablecer</button>
+      </div>
+    </form>
+
+    <div class="stack">
+      <section class="card hidden" id="empty">
+        <p class="empty">Introduce tu sexo, edad, altura y peso para ver el resultado.</p>
+      </section>
+
+      <div class="stack" id="results">
+        <section class="card">
+          <h2>Agua corporal total</h2>
+          <div class="big">
+            <strong id="tbw">–</strong>
+            <span class="unit">litros</span>
+            <span class="badge" id="pct-badge"></span>
+          </div>
+          <p class="note" id="pct-note"></p>
+
+          <div class="stats" style="margin-top: 1rem">
+            <div class="stat">
+              <div class="k">Watson (1980)</div>
+              <div class="v" id="watson">–</div>
+              <div class="s">fórmula principal</div>
+            </div>
+            <div class="stat">
+              <div class="k">Hume-Weyers (1971)</div>
+              <div class="v" id="hume">–</div>
+              <div class="s">para comparar</div>
+            </div>
+            <div class="stat">
+              <div class="k">Masa no acuosa</div>
+              <div class="v" id="seco">–</div>
+              <div class="s">grasa, proteínas, minerales…</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Dónde está el agua</h2>
+          <div class="comp-bar" aria-hidden="true">
+            <span id="bar-ic" style="background: var(--ic)"></span>
+            <span id="bar-is" style="background: var(--is)"></span>
+            <span id="bar-pl" style="background: var(--pl)"></span>
+          </div>
+          <div class="stats">
+            <div class="stat">
+              <div class="k"><span class="swatch" style="background: var(--ic)"></span>Intracelular</div>
+              <div class="v" id="ic">–</div>
+              <div class="s">dentro de las células · ⅔</div>
+            </div>
+            <div class="stat">
+              <div class="k"><span class="swatch" style="background: var(--is)"></span>Intersticial</div>
+              <div class="v" id="is">–</div>
+              <div class="s">entre las células · ¾ del extracelular</div>
+            </div>
+            <div class="stat">
+              <div class="k"><span class="swatch" style="background: var(--pl)"></span>Plasma</div>
+              <div class="v" id="pl">–</div>
+              <div class="s">parte líquida de la sangre</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Electrolitos disueltos</h2>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr><th>Electrolito</th><th>Extracelular</th><th>Intracelular</th><th>Total</th><th>Masa</th></tr>
+              </thead>
+              <tbody>
+                {
+                  ELECTROLITOS.map((e) => (
+                    <tr data-id={e.id}>
+                      <td>{e.nombre} <span class="sym">{e.simbolo}</span></td>
+                      <td data-col="ec">–</td>
+                      <td data-col="ic">–</td>
+                      <td data-col="mmol">–</td>
+                      <td data-col="g">–</td>
+                    </tr>
+                  ))
+                }
+              </tbody>
+            </table>
+          </div>
+          <p class="note">
+            Cantidades en mmol calculadas con concentraciones fisiológicas típicas de cada compartimento. Solo
+            cuentan los iones disueltos en los líquidos: el 99 % del calcio y buena parte del magnesio y del
+            sodio están en los huesos.
+          </p>
+        </section>
+
+        <section class="card">
+          <h2>Necesidad diaria</h2>
+          <div class="stats">
+            <div class="stat">
+              <div class="k">Agua total al día</div>
+              <div class="v" id="need-total">–</div>
+              <div class="s" id="need-detail"></div>
+            </div>
+            <div class="stat">
+              <div class="k">De ella, en bebidas</div>
+              <div class="v" id="need-drink">–</div>
+              <div class="s">~80 %; el resto viene de la comida</div>
+            </div>
+            <div class="stat">
+              <div class="k">Sodio perdido en el sudor</div>
+              <div class="v" id="sweat-na">–</div>
+              <div class="s" id="sweat-salt"></div>
+            </div>
+            <div class="stat">
+              <div class="k">Potasio perdido en el sudor</div>
+              <div class="v" id="sweat-k">–</div>
+              <div class="s">estimación media</div>
+            </div>
+          </div>
+          <p class="note">
+            Base: ingesta adecuada de la EFSA (2 L mujeres, 2,5 L hombres) o 35 mL/kg si es mayor, más ~0,8 L de
+            sudor por hora de ejercicio. La sudoración real varía entre 0,5 y 2 L/h: pésate antes y después de
+            entrenar para conocer la tuya.
+          </p>
+        </section>
+
+        <section class="card">
+          <h2>Tu analítica</h2>
+          <p class="hint" id="lab-empty">
+            Abre «Analítica de sangre» en el formulario y añade tus valores para calcular osmolalidad, anion gap
+            y sodio corregido.
+          </p>
+          <div class="stats" id="lab-stats"></div>
+        </section>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .comp-bar {
+    display: flex;
+    height: 28px;
+    border-radius: 8px;
+    overflow: hidden;
+    gap: 2px;
+    margin: 0.75rem 0 1rem;
+  }
+
+  .comp-bar span {
+    transition: flex-grow 0.25s ease;
+  }
+
+  .swatch {
+    display: inline-block;
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 2px;
+    margin-right: 0.4rem;
+  }
+
+  .sym {
+    color: var(--muted);
+    font-size: 0.85em;
+  }
+
+  /* Contenido inyectado con innerHTML: necesita :global para recibir estilos. */
+  #lab-stats :global(.u) {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--muted);
+  }
+</style>
+
+<script>
+  import { syncForm, bindShareButton, num } from '../lib/sync';
+  import {
+    aguaWatson,
+    aguaHumeWeyers,
+    compartimentos,
+    contenidoElectrolitos,
+    necesidadAgua,
+    osmolalidad,
+    anionGap,
+    sodioCorregido,
+    deficitAguaLibre,
+    estado,
+    RANGOS,
+    type Sexo,
+    type Estado,
+  } from '../lib/calc';
+
+  const f0 = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 });
+  const f1 = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 1, minimumFractionDigits: 1 });
+  const f2 = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 2 });
+  const $ = (id: string) => document.getElementById(id)!;
+
+  /** mmol con unidades legibles (mol si es grande). */
+  const mmol = (n: number) => (n >= 1000 ? `${f2.format(n / 1000)} mol` : `${f0.format(n)} mmol`);
+  const grams = (g: number) => (g >= 1 ? `${f1.format(g)} g` : `${f0.format(g * 1000)} mg`);
+
+  const TONE: Record<Estado, string> = { bajo: 'low', normal: 'ok', alto: 'high' };
+  const ESTADO_LABEL: Record<Estado, string> = { bajo: 'Bajo', normal: 'Normal', alto: 'Alto' };
+
+  const form = document.getElementById('form') as HTMLFormElement;
+  bindShareButton(form.querySelector('[data-share]'));
+
+  // Si llegan valores de analítica (por URL o guardados) abrimos el desplegable.
+  const labNames = ['na', 'k', 'cl', 'hco3', 'glucosa', 'urea'];
+  let labOpened = false;
+
+  syncForm(form, 'agua', (v) => {
+    const sexo = (v.sexo === 'hombre' ? 'hombre' : 'mujer') as Sexo;
+    const edad = num(v.edad);
+    const altura = num(v.altura);
+    const peso = num(v.peso);
+    const valid = edad != null && altura != null && peso != null && altura > 0 && peso > 0;
+
+    if (!labOpened && labNames.some((n) => v[n])) {
+      ($('lab-details') as HTMLDetailsElement).open = true;
+      labOpened = true;
+    }
+
+    $('empty').classList.toggle('hidden', valid);
+    $('results').classList.toggle('hidden', !valid);
+    if (!valid) return;
+
+    /* Agua total */
+    const watson = aguaWatson(sexo, edad, altura, peso);
+    const hume = aguaHumeWeyers(sexo, altura, peso);
+    const pct = (watson / peso) * 100;
+    const [lo, hi] = sexo === 'hombre' ? [50, 65] : [45, 60];
+    $('tbw').textContent = f1.format(watson);
+    $('pct-badge').textContent = `${f1.format(pct)} % del peso`;
+    $('pct-badge').dataset.tone = pct < lo ? 'low' : pct > hi ? 'low' : 'ok';
+    $('pct-note').textContent =
+      `Rango habitual en ${sexo === 'hombre' ? 'hombres' : 'mujeres'} adultos: ${lo}–${hi} %. ` +
+      (pct < lo
+        ? 'Un porcentaje bajo suele reflejar más grasa corporal (el tejido adiposo tiene poca agua) o más edad.'
+        : pct > hi
+          ? 'Un porcentaje alto suele corresponder a mucha masa muscular y poca grasa.'
+          : 'Estás dentro de lo esperable.');
+    $('watson').textContent = `${f1.format(watson)} L`;
+    $('hume').textContent = `${f1.format(hume)} L`;
+    $('seco').textContent = `${f1.format(Math.max(peso - watson, 0))} kg`;
+
+    /* Compartimentos */
+    const c = compartimentos(watson);
+    $('ic').textContent = `${f1.format(c.intracelular)} L`;
+    $('is').textContent = `${f1.format(c.intersticial)} L`;
+    $('pl').textContent = `${f1.format(c.plasma)} L`;
+    $('bar-ic').style.flexGrow = String(c.intracelular);
+    $('bar-is').style.flexGrow = String(c.intersticial);
+    $('bar-pl').style.flexGrow = String(c.plasma);
+
+    /* Electrolitos */
+    for (const e of contenidoElectrolitos(c.intracelular, c.extracelular)) {
+      const row = document.querySelector(`tr[data-id="${e.id}"]`);
+      if (!row) continue;
+      const cell = (col: string) => row.querySelector(`[data-col="${col}"]`)!;
+      cell('ec').textContent = mmol(e.mmolEc);
+      cell('ic').textContent = e.mmolIc < 1 ? '≈ 0' : mmol(e.mmolIc);
+      cell('mmol').textContent = mmol(e.mmol);
+      cell('g').textContent = grams(e.gramos);
+    }
+
+    /* Necesidad diaria */
+    const n = necesidadAgua(sexo, peso, Math.max(num(v.ejercicio) ?? 0, 0), v.calor === '1');
+    $('need-total').textContent = `${f1.format(n.total)} L`;
+    $('need-detail').textContent = [
+      `${f1.format(n.base)} L base`,
+      n.sudor > 0 ? `+${f1.format(n.sudor)} L sudor` : '',
+      n.clima > 0 ? `+${f1.format(n.clima)} L calor` : '',
+    ]
+      .filter(Boolean)
+      .join(' · ');
+    $('need-drink').textContent = `${f1.format(n.bebida)} L`;
+    $('sweat-na').textContent = n.sodioPerdidoG > 0 ? grams(n.sodioPerdidoG) : '0 g';
+    $('sweat-salt').textContent =
+      n.sodioPerdidoG > 0 ? `≈ ${grams(n.sodioPerdidoG * 2.54)} de sal` : 'sin ejercicio indicado';
+    $('sweat-k').textContent = n.potasioPerdidoG > 0 ? grams(n.potasioPerdidoG) : '0 g';
+
+    /* Analítica */
+    const lab = Object.fromEntries(labNames.map((k) => [k, num(v[k])])) as Record<string, number | null>;
+    const items: string[] = [];
+    const stat = (k: string, value: string, sub: string, tone?: string) =>
+      `<div class="stat"><div class="k">${k}</div><div class="v">${value}</div><div class="s">${
+        tone ? `<span class="badge" data-tone="${tone}">${sub}</span>` : sub
+      }</div></div>`;
+    const withUnit = (value: number, unit: string) => `${f1.format(value)} <span class="u">${unit}</span>`;
+    const ranged = (key: string, label: string, value: number, unit: string) => {
+      const st = estado(value, RANGOS[key]);
+      const [a, b] = RANGOS[key];
+      return stat(label, withUnit(value, unit), `${ESTADO_LABEL[st]} · ${f2.format(a)}–${f2.format(b)}`, TONE[st]);
+    };
+
+    if (lab.na != null && lab.glucosa != null && lab.urea != null) {
+      items.push(ranged('osm', 'Osmolalidad calculada', osmolalidad(lab.na, lab.glucosa, lab.urea), 'mOsm/kg'));
+    }
+    if (lab.na != null && lab.cl != null && lab.hco3 != null) {
+      items.push(ranged('anionGap', 'Anion gap', anionGap(lab.na, lab.cl, lab.hco3), 'mmol/L'));
+    }
+    if (lab.na != null && lab.glucosa != null && lab.glucosa > 100) {
+      const corr = sodioCorregido(lab.na, lab.glucosa);
+      const st = estado(corr, RANGOS.na);
+      items.push(stat('Sodio corregido por glucosa', withUnit(corr, 'mmol/L'), ESTADO_LABEL[st], TONE[st]));
+    }
+    if (lab.na != null && lab.na > 145) {
+      items.push(
+        stat('Déficit de agua libre', `${f1.format(deficitAguaLibre(watson, lab.na))} L`, 'para volver a 140 mmol/L', 'high'),
+      );
+    }
+    const names: Record<string, [string, string]> = {
+      na: ['Sodio', 'mmol/L'],
+      k: ['Potasio', 'mmol/L'],
+      cl: ['Cloro', 'mmol/L'],
+      hco3: ['Bicarbonato', 'mmol/L'],
+      glucosa: ['Glucosa', 'mg/dL'],
+      urea: ['Urea', 'mg/dL'],
+    };
+    for (const key of labNames) {
+      const value = lab[key];
+      if (value != null) items.push(ranged(key, names[key][0], value, names[key][1]));
+    }
+
+    $('lab-empty').classList.toggle('hidden', items.length > 0);
+    $('lab-stats').innerHTML = items.join('');
+  });
+</script>

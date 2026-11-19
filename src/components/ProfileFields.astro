@@ -1,0 +1,14 @@
+---
+import NumberField from './NumberField.astro';
+---
+
+<fieldset>
+  <legend>Tu perfil</legend>
+  <div class="segmented" role="radiogroup" aria-label="Sexo">
+    <label><input type="radio" name="sexo" value="mujer" checked /> Mujer</label>
+    <label><input type="radio" name="sexo" value="hombre" /> Hombre</label>
+  </div>
+  <NumberField name="edad" label="Edad" unit="años" min={2} max={120} step={1} value="35" />
+  <NumberField name="altura" label="Altura" unit="cm" min={50} max={250} value="170" />
+  <NumberField name="peso" label="Peso" unit="kg" min={10} max={350} value="70" />
+</fieldset>
