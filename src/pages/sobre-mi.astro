@@ -1,0 +1,325 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { href } from '../lib/paths';
+import { getAbout, getOtherApps, iconPath, photoPath } from '../lib/soldeplata';
+
+const [about, apps] = await Promise.all([getAbout(), getOtherApps()]);
+const appNames = new Intl.ListFormat('es', { type: 'conjunction' }).format(apps.map((a) => a.name));
+const external = { target: '_blank', rel: 'noopener' };
+---
+
+<Layout
+  title={`Sobre ${about.shortName} · Cuerpo`}
+  description={`${about.name} hace Cuerpo y otras apps pequeñas y enfocadas, como ${appNames}.`}
+>
+  <section class="intro">
+    <img
+      class="photo"
+      src={href(photoPath(about))}
+      alt={about.photo.alt}
+      width={about.photo.width}
+      height={about.photo.height}
+      decoding="async"
+    />
+    <div>
+      <p class="eyebrow">Quién hace Cuerpo</p>
+      <h1>{about.name}</h1>
+      <p class="role">{about.role} · {about.location}</p>
+    </div>
+  </section>
+
+  <div class="bio">
+    {about.bio.map((p) => <p>{p}</p>)}
+  </div>
+
+  <section class="block">
+    <h2>Más apps de {about.shortName}</h2>
+    <div class="apps">
+      {
+        apps.map((app) => {
+          const icon = iconPath(app);
+          return (
+            <article class="app card">
+              <header>
+                {icon && <img src={href(icon)} alt="" width="40" height="40" loading="lazy" decoding="async" />}
+                <div>
+                  <h3>{app.name}</h3>
+                  <p class="tagline">{app.tagline}</p>
+                </div>
+              </header>
+              <p class="desc">{app.description}</p>
+              <ul class="highlights">
+                {app.highlights.map((h) => (
+                  <li>{h}</li>
+                ))}
+              </ul>
+              <div class="app-foot">
+                <span class="badge">{app.languages}</span>
+                <a class="cta" href={app.url} {...external}>
+                  {app.cta} →
+                </a>
+              </div>
+            </article>
+          );
+        })
+      }
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Tecnologías</h2>
+    <ul class="chips">
+      {about.stack.map((tech) => <li>{tech}</li>)}
+    </ul>
+  </section>
+
+  <section class="block">
+    <h2>Principios</h2>
+    <div class="quotes">
+      {
+        about.principles.map((p) => (
+          <figure>
+            <blockquote>«{p.quote}»</blockquote>
+            {p.author && <figcaption>— {p.author}</figcaption>}
+          </figure>
+        ))
+      }
+    </div>
+  </section>
+
+  {
+    about.writing.length > 0 && (
+      <section class="block">
+        <h2>Artículos</h2>
+        {about.writing.map((w) => (
+          <p class="writing">
+            {w.intro}{' '}
+            <a href={w.url} {...external}>
+              {w.title}
+            </a>
+            {w.lang !== 'es' && <span class="lang"> (en inglés)</span>}
+          </p>
+        ))}
+      </section>
+    )
+  }
+
+  <section class="block contact card">
+    <h2>{about.contact.title}</h2>
+    <div class="links">
+      {
+        about.contact.links.map((l, i) => (
+          <a class:list={['button', { primary: i === 0 }]} href={l.url} {...external}>
+            {l.label}
+          </a>
+        ))
+      }
+    </div>
+    <p class="social">
+      {
+        about.social.map((l, i) => (
+          <>
+            {i > 0 && ' · '}
+            <a href={l.url} {...external}>
+              {l.label}
+            </a>
+          </>
+        ))
+      }
+    </p>
+  </section>
+</Layout>
+
+<style>
+  .intro {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 3rem 0 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .photo {
+    width: 128px;
+    height: 128px;
+    object-fit: cover;
+    object-position: top;
+    border-radius: var(--radius);
+    flex-shrink: 0;
+  }
+
+  .eyebrow {
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 0 0 0.5rem;
+  }
+
+  .role {
+    color: var(--muted);
+    margin: 0;
+  }
+
+  .bio {
+    max-width: 68ch;
+    font-size: 1.05rem;
+  }
+
+  .bio p {
+    margin: 0 0 1rem;
+  }
+
+  .block {
+    margin-top: 2.5rem;
+  }
+
+  .block > h2 {
+    margin-bottom: 1rem;
+  }
+
+  .apps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+    gap: 1.25rem;
+  }
+
+  .app {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .app header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .app header img {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    flex-shrink: 0;
+  }
+
+  .app h3 {
+    margin: 0;
+    font-size: 1.15rem;
+  }
+
+  .tagline,
+  .desc {
+    margin: 0;
+  }
+
+  .tagline {
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
+
+  .desc {
+    font-size: 0.95rem;
+  }
+
+  .highlights {
+    margin: 0;
+    padding-left: 1.1rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+    flex: 1;
+  }
+
+  .app-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .cta {
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .chips li {
+    padding: 0.25rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 0.9rem;
+    background: var(--surface);
+  }
+
+  .quotes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+    gap: 1rem;
+  }
+
+  figure {
+    margin: 0;
+    padding: 1rem 1.25rem;
+    border-left: 3px solid var(--accent);
+    background: var(--surface);
+    border-radius: 0 var(--radius) var(--radius) 0;
+  }
+
+  blockquote {
+    margin: 0;
+  }
+
+  figcaption {
+    margin-top: 0.5rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+
+  .writing {
+    max-width: 68ch;
+    margin: 0;
+  }
+
+  .lang {
+    color: var(--muted);
+  }
+
+  .contact .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1rem 0;
+  }
+
+  .button {
+    display: inline-block;
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 0.9rem;
+  }
+
+  .button.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--bg);
+    font-weight: 600;
+  }
+
+  .social {
+    margin: 0;
+    font-size: 0.9rem;
+  }
+</style>
