@@ -1,5 +1,6 @@
 ---
 import { href } from '../lib/paths';
+import { getOtherApps } from '../lib/soldeplata';
 
 interface Props {
   title: string;
@@ -8,6 +9,7 @@ interface Props {
 
 const { title, description } = Astro.props;
 const current = Astro.url.pathname.replace(/\/$/, '');
+const otherApps = await getOtherApps();
 
 const links = [
   { path: 'imc', label: 'IMC' },
@@ -30,7 +32,7 @@ const links = [
       <div class="wrap header-inner">
         <a class="brand" href={href()}>
           <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="currentColor"></circle><path d="M32 14c-6 9-12 16-12 23a12 12 0 0 0 24 0c0-7-6-14-12-23Z" fill="var(--bg)"></path></svg>
-          cuerpo
+          Cuerpo
         </a>
         <nav aria-label="Calculadoras">
           {
@@ -54,6 +56,20 @@ const links = [
         una medición por bioimpedancia o analítica.
       </p>
       <p>Tus datos se quedan en tu navegador (localStorage) y en la URL que decidas compartir.</p>
+      <p class="more">
+        <a href={href('sobre-mi')}>Quién hace Cuerpo</a>
+        {' · Más apps de Soldeplata: '}
+        {
+          otherApps.map((app, i) => (
+            <>
+              {i > 0 && ', '}
+              <a href={app.url} target="_blank" rel="noopener" title={app.tagline}>
+                {app.name}
+              </a>
+            </>
+          ))
+        }
+      </p>
     </footer>
   </body>
 </html>
@@ -222,6 +238,10 @@ const links = [
 
   .site-footer p {
     margin: 0.25rem 0;
+  }
+
+  .site-footer .more {
+    margin-top: 1rem;
   }
 
   /* ── Página de calculadora ── */
