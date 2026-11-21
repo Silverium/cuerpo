@@ -24,7 +24,10 @@ npm run dev      # http://localhost:4321/cuerpo
 npm run build    # genera ./dist
 ```
 
-El workflow de `.github/workflows/deploy.yml` despliega en cada push a `main` a GitHub Pages y a Cloudflare Workers (`cuerpo.soldeplata.dev`). Cloudflare necesita los secretos `CLOUDFLARE_API_TOKEN` (permiso *Workers Scripts: Edit*) y `CLOUDFLARE_ACCOUNT_ID` en el repo.
+Hay dos despliegues en cada push a `main`:
+
+- **GitHub Pages** (`silverium.github.io/cuerpo`): el workflow de `.github/workflows/deploy.yml`.
+- **Cloudflare Workers** (`cuerpo.soldeplata.dev`): Workers Builds, conectado al repo desde el panel de Cloudflare. Compila con `npm run build:cf` y publica con `npx wrangler deploy`. Para desplegar a mano: `npm run deploy:cf`.
 
 ## Aviso
 
