@@ -10,4 +10,5 @@ export default defineConfig({
   site: cloudflare ? 'https://cuerpo.soldeplata.dev' : 'https://silverium.github.io',
   base: cloudflare ? '/' : '/cuerpo',
   trailingSlash: 'ignore',
+  server: { port: 1983 },
 });

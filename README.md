@@ -20,7 +20,7 @@ La lógica está en [`src/lib/sync.ts`](src/lib/sync.ts) y las fórmulas en [`sr
 
 ```sh
 npm install
-npm run dev      # http://localhost:4321/cuerpo
+npm run dev      # http://localhost:1983/cuerpo
 npm run build    # genera ./dist
 ```
 
