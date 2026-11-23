@@ -1,12 +1,22 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { href } from '../lib/paths';
+import { canonicalUrl, href } from '../lib/paths';
+
+// Datos estructurados WebSite: ayudan a Google a mostrar "Cuerpo" como nombre del sitio.
+const website = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Cuerpo',
+  url: canonicalUrl(),
+  inLanguage: 'es',
+};
 ---
 
 <Layout
   title="Cuerpo · calculadoras corporales"
   description="Calculadoras de medidas corporales: índice de masa corporal, agua corporal total y electrolitos."
 >
+  <script is:inline slot="head" type="application/ld+json" set:html={JSON.stringify(website)} />
   <section class="hero">
     <p class="eyebrow">Calculadoras corporales</p>
     <h1>Conoce tus números en segundos.</h1>
@@ -18,7 +28,7 @@ import { href } from '../lib/paths';
   </section>
 
   <section class="tools">
-    <a class="tool card" href={href('imc')}>
+    <a class="tool card" href={href('imc/')}>
       <span class="icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16"></path><path d="M6 20V10"></path><path d="M12 20V4"></path><path d="M18 20v-7"></path></svg>
       </span>
@@ -27,7 +37,7 @@ import { href } from '../lib/paths';
       <span class="go">Calcular IMC →</span>
     </a>
 
-    <a class="tool card" href={href('agua')}>
+    <a class="tool card" href={href('agua/')}>
       <span class="icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-3.5 5-7 9-7 12.5a7 7 0 0 0 14 0C19 12 15.5 8 12 3Z"></path><path d="M9 16a3 3 0 0 0 3 3"></path></svg>
       </span>

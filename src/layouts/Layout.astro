@@ -1,5 +1,5 @@
 ---
-import { href } from '../lib/paths';
+import { canonicalUrl, href, stripBase, withSlash } from '../lib/paths';
 import { getOtherApps } from '../lib/soldeplata';
 
 interface Props {
@@ -8,12 +8,13 @@ interface Props {
 }
 
 const { title, description } = Astro.props;
-const current = Astro.url.pathname.replace(/\/$/, '');
+const current = withSlash(Astro.url.pathname);
+const canonical = canonicalUrl(stripBase(Astro.url.pathname));
 const otherApps = await getOtherApps();
 
 const links = [
-  { path: 'imc', label: 'IMC' },
-  { path: 'agua', label: 'Agua y electrolitos' },
+  { path: 'imc/', label: 'IMC' },
+  { path: 'agua/', label: 'Agua y electrolitos' },
 ];
 ---
 
@@ -25,7 +26,10 @@ const links = [
     <meta name="description" content={description} />
     <meta name="generator" content={Astro.generator} />
     <link rel="icon" type="image/svg+xml" href={href('favicon.svg')} />
+    <link rel="canonical" href={canonical} />
+    <link rel="sitemap" type="application/xml" href={href('sitemap.xml')} />
     <title>{title}</title>
+    <slot name="head" />
   </head>
   <body>
     <header class="site-header">
@@ -63,7 +67,7 @@ const links = [
       </p>
       <p>Tus datos se quedan en tu navegador (localStorage) y en la URL que decidas compartir.</p>
       <p class="more">
-        <a href={href('sobre-mi')}>Quién hace Cuerpo</a>
+        <a href={href('sobre-mi/')}>Quién hace Cuerpo</a>
         {' · Más apps de Soldeplata: '}
         {
           otherApps.map((app, i) => (

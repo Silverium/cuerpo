@@ -29,6 +29,16 @@ Hay dos despliegues en cada push a `main`:
 - **GitHub Pages** (`silverium.github.io/cuerpo`): el workflow de `.github/workflows/deploy.yml`.
 - **Cloudflare Workers** (`cuerpo.soldeplata.dev`): Workers Builds, conectado al repo desde el panel de Cloudflare. Compila con `npm run build:cf` y publica con `npx wrangler deploy`. Para desplegar a mano: `npm run deploy:cf`.
 
+## SEO
+
+Sigue la [guía de SEO de Google](https://developers.google.com/search/docs/fundamentals/seo-starter-guide):
+
+- **Dominio canónico**: `https://cuerpo.soldeplata.dev` ([`src/lib/site.mjs`](src/lib/site.mjs)). Las dos copias (Cloudflare y GitHub Pages) declaran esa URL con `<link rel="canonical">`, siempre con barra final y sin la query de la calculadora, para que Google indexe una sola versión de cada página.
+- **`/sitemap.xml`** y **`/robots.txt`** se generan al compilar con las URL canónicas ([`src/pages/sitemap.xml.ts`](src/pages/sitemap.xml.ts), [`src/pages/robots.txt.ts`](src/pages/robots.txt.ts)). El sitemap incluye automáticamente cada `.astro` de `src/pages`.
+- Cada página pasa a `Layout` un `title` y una `description` propios y únicos.
+- La portada lleva datos estructurados `WebSite` para que Google muestre «Cuerpo» como nombre del sitio.
+- Los enlaces internos llevan barra final (`/imc/`), que es como los sirven los dos alojamientos, para evitar redirecciones.
+
 ## Aviso
 
 Son estimaciones basadas en fórmulas poblacionales. No sustituyen una valoración médica, una bioimpedancia ni una analítica.
