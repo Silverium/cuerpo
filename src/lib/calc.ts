@@ -116,6 +116,14 @@ export function contenidoElectrolitos(intracelularL: number, extracelularL: numb
 export const SUDOR_L_POR_HORA = 0.8;
 /** Concentraciones medias en sudor (mmol/L). */
 export const SUDOR = { na: 40, k: 5 };
+/**
+ * Electrolitos por litro de bebida para reponer el sudor en su misma proporción (g/L).
+ * Beber solo agua cuando se suda mucho diluye el sodio de la sangre (riesgo de hiponatremia).
+ */
+export const ELECTROLITOS_POR_LITRO = {
+  sodioG: (SUDOR.na * 22.99) / 1000,
+  potasioG: (SUDOR.k * 39.1) / 1000,
+};
 
 /**
  * Sodio diario para un adulto sano según James DiNicolantonio, «La solución está en la sal»
@@ -125,15 +133,22 @@ export const SUDOR = { na: 40, k: 5 };
 export const SODIO_BASE_G: [number, number] = [3, 6];
 /** Edad mínima (años) a la que se muestra el rango de sodio, pensado para adultos. */
 export const EDAD_MINIMA_SODIO = 16;
+/** Edades en las que la sed avisa peor: por debajo de la primera y desde la segunda (años). */
+export const EDAD_SED_NINO = 12;
+export const EDAD_SED_MAYOR = 65;
 /** Gramos de sal (NaCl) por gramo de sodio: 58,44 / 22,99. */
 export const SAL_POR_SODIO = 58.44 / 22.99;
 /** Gramos de sal en una cucharadita rasa de sal de mesa. */
 export const SAL_POR_CUCHARADITA = 6;
 
 /**
- * Agua total diaria recomendada (L), incluida la de los alimentos.
+ * Referencia orientativa de agua total diaria (L), incluida la de los alimentos.
  * Base: ingesta adecuada de la EFSA (2,5 L hombres, 2,0 L mujeres) o 35 mL/kg si es mayor,
  * más la pérdida estimada por sudor y un extra si hace calor.
+ *
+ * La cifra de la EFSA es poco fiable como objetivo: se basa en la ingesta observada en la
+ * población, no en una necesidad demostrada. La app recomienda guiarse por la sed y la muestra
+ * solo como dato secundario.
  */
 export function necesidadAgua(sexo: Sexo, pesoKg: number, ejercicioMin: number, calor: boolean) {
   const base = Math.max(sexo === 'hombre' ? 2.5 : 2.0, (pesoKg * 35) / 1000);

@@ -7,7 +7,7 @@ import { ELECTROLITOS } from '../lib/calc';
 
 <Layout
   title="Agua y electrolitos · Cuerpo"
-  description="Estima tu agua corporal total, cómo se reparte entre compartimentos, los electrolitos disueltos y cuánta agua necesitas al día."
+  description="Estima tu agua corporal total, cómo se reparte entre compartimentos, los electrolitos disueltos y cómo hidratarte: según la sed y con electrolitos."
 >
   <section class="page-head">
     <h1>Agua y electrolitos</h1>
@@ -135,17 +135,43 @@ import { ELECTROLITOS } from '../lib/calc';
         </section>
 
         <section class="card">
-          <h2>Necesidad diaria</h2>
+          <h2>Hidratación</h2>
+          <ul class="keys">
+            <li>
+              <strong>Bebe solo cuando tengas sed.</strong> En una persona sana, la sed es el indicador más fiable
+              de cuánta agua necesitas. Beber sin sed no hidrata más: el exceso de agua diluye el sodio de la
+              sangre (hiponatremia) y lo eliminas por la orina junto con electrolitos.
+              <span class="exception">
+                <em>Excepción:</em> en personas mayores, niños, con calor intenso o esfuerzos largos, o si tomas
+                diuréticos u otros fármacos que alteran la sed, la sed avisa tarde. En esos casos no esperes a
+                tenerla: bebe a sorbos con regularidad, siempre con electrolitos y sin forzar grandes cantidades. Si
+                tienes alguna enfermedad o restricción de líquidos, sigue lo que te indique tu médico.
+              </span>
+              <span class="badge hidden" data-tone="warn" id="thirst-warn"></span>
+            </li>
+            <li>
+              <strong>Bebe con la proporción de electrolitos correcta.</strong> Si sudas, repón también sal y
+              potasio en la misma proporción que pierdes: unos <span id="per-l-na">–</span> de sodio
+              (<span id="per-l-salt">–</span> de sal) y <span id="per-l-k">–</span> de potasio por cada litro.
+              Reponer el sudor solo con agua baja el sodio de la sangre.
+            </li>
+          </ul>
+          <p class="disclaimer">
+            <strong>Aviso:</strong> estas recomendaciones no son de un médico. Se basan en estudios científicos y
+            en lo que recomiendan algunos médicos y autores (ver <a href="#bibliografia">bibliografía</a>). Si las
+            sigues, es bajo tu responsabilidad: declino toda responsabilidad por sus consecuencias. Ante cualquier
+            duda, consulta con un profesional sanitario.
+          </p>
           <div class="stats">
             <div class="stat">
-              <div class="k">Agua total al día</div>
-              <div class="v" id="need-total">–</div>
-              <div class="s" id="need-detail"></div>
+              <div class="k">Electrolitos por litro</div>
+              <div class="v" id="per-l-v">–</div>
+              <div class="s" id="per-l-s"></div>
             </div>
             <div class="stat">
-              <div class="k">De ella, en bebidas</div>
-              <div class="v" id="need-drink">–</div>
-              <div class="s">~80 %; el resto viene de la comida</div>
+              <div class="k">Sudor perdido</div>
+              <div class="v" id="sweat-l">–</div>
+              <div class="s" id="sweat-l-s"></div>
             </div>
             <div class="stat">
               <div class="k">Sal al día</div>
@@ -164,9 +190,9 @@ import { ELECTROLITOS } from '../lib/calc';
             </div>
           </div>
           <p class="note">
-            Base: ingesta adecuada de la EFSA (2 L mujeres, 2,5 L hombres) o 35 mL/kg si es mayor, más ~0,8 L de
-            sudor por hora de ejercicio. La sudoración real varía entre 0,5 y 2 L/h: pésate antes y después de
-            entrenar para conocer la tuya.
+            Sudor: ~0,8 L por hora de ejercicio. La sudoración real varía entre 0,5 y 2 L/h: pésate antes y
+            después de entrenar para conocer la tuya. La proporción de electrolitos es la de un sudor medio
+            (40 mmol/L de sodio, 5 mmol/L de potasio); hay quien suda más salado.
           </p>
           <p class="note">
             Sal: 8–15 g al día (3–6 g de sodio), incluida la de la comida, según James DiNicolantonio en «La
@@ -175,6 +201,32 @@ import { ELECTROLITOS } from '../lib/calc';
             tienes hipertensión sensible a la sal, enfermedad renal o insuficiencia cardiaca, consúltalo con tu
             médico.
           </p>
+
+          <details class="efsa">
+            <summary>Referencia de la EFSA (dato poco fiable)</summary>
+            <p class="note">
+              Litros orientativos según la «ingesta adecuada» de la EFSA (2 L mujeres, 2,5 L hombres) o 35 mL/kg
+              si es mayor, más el sudor: <span id="need-total">–</span> de agua total al día
+              (<span id="need-detail"></span>), de los que unos <span id="need-drink">–</span> serían en bebidas
+              y el resto vendría de la comida.
+            </p>
+            <p class="note">
+              No es un objetivo: la EFSA la calculó a partir de lo que bebe de media la población, no de lo que
+              cada persona necesita. No hace falta llegar a esa cifra si no tienes sed.
+            </p>
+          </details>
+
+          <h3 id="bibliografia">Bibliografía</h3>
+          <ul class="biblio">
+            <li>
+              DiNicolantonio, James. <cite>The Salt Fix</cite>. Nueva York: Harmony Books, 2017. Edición en
+              español: <cite>La solución está en la sal</cite>.
+            </li>
+            <li>
+              Duarte, David (Dr.). Curso de la Academia Unani.
+              <a href="https://www.academiaunani.com/" target="_blank" rel="noopener noreferrer">academiaunani.com</a>
+            </li>
+          </ul>
         </section>
 
         <section class="card">
@@ -217,6 +269,60 @@ import { ELECTROLITOS } from '../lib/calc';
     font-size: 0.85em;
   }
 
+  .keys {
+    margin: 0 0 1rem;
+    padding: 0.85rem 1rem 0.85rem 2rem;
+    border-left: 4px solid var(--accent);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--accent-soft) 55%, transparent);
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  .keys strong {
+    color: var(--accent);
+  }
+
+  .keys .exception {
+    display: block;
+    margin-top: 0.4rem;
+    font-size: 0.9rem;
+  }
+
+  .keys .badge {
+    margin-top: 0.4rem;
+    white-space: normal;
+  }
+
+  .disclaimer {
+    margin: 0 0 1rem;
+    padding: 0.6rem 0.85rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    color: var(--warn);
+    background: color-mix(in srgb, var(--warn) 10%, transparent);
+  }
+
+  #bibliografia {
+    margin-top: 1.25rem;
+  }
+
+  .biblio {
+    margin: 0.25rem 0 0;
+    padding-left: 1.25rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  .efsa {
+    margin-top: 1rem;
+    color: var(--muted);
+  }
+
+  .efsa summary {
+    font-size: 0.85rem;
+  }
+
   /* Contenido inyectado con innerHTML: necesita :global para recibir estilos. */
   #lab-stats :global(.u) {
     font-size: 0.75rem;
@@ -242,6 +348,9 @@ import { ELECTROLITOS } from '../lib/calc';
     SAL_POR_SODIO,
     SAL_POR_CUCHARADITA,
     EDAD_MINIMA_SODIO,
+    ELECTROLITOS_POR_LITRO,
+    EDAD_SED_NINO,
+    EDAD_SED_MAYOR,
     type Sexo,
     type Estado,
   } from '../lib/calc';
@@ -331,6 +440,26 @@ import { ELECTROLITOS } from '../lib/calc';
       .filter(Boolean)
       .join(' · ');
     $('need-drink').textContent = `${f1.format(n.bebida)} L`;
+
+    const perL = ELECTROLITOS_POR_LITRO;
+    $('per-l-na').textContent = grams(perL.sodioG);
+    $('per-l-salt').textContent = grams(perL.sodioG * SAL_POR_SODIO);
+    $('per-l-k').textContent = grams(perL.potasioG);
+    $('per-l-v').textContent = `${grams(perL.sodioG * SAL_POR_SODIO)} sal`;
+    $('per-l-s').textContent = `${grams(perL.sodioG)} Na + ${grams(perL.potasioG)} K por litro`;
+    // Avisamos cuando el perfil cae en la excepción a «bebe solo con sed».
+    const motivos = [
+      edad >= EDAD_SED_MAYOR ? `tienes ${EDAD_SED_MAYOR} años o más` : '',
+      edad < EDAD_SED_NINO ? `es un niño o niña menor de ${EDAD_SED_NINO} años` : '',
+      v.calor === '1' ? 'hace calor o sudas mucho' : '',
+    ].filter(Boolean);
+    $('thirst-warn').classList.toggle('hidden', motivos.length === 0);
+    $('thirst-warn').textContent = motivos.length
+      ? `Tu caso: ${motivos.join(' y ')}. Bebe con regularidad, sin esperar a la sed.`
+      : '';
+
+    $('sweat-l').textContent = n.sudor > 0 ? `${f1.format(n.sudor)} L` : '0 L';
+    $('sweat-l-s').textContent = n.sudor > 0 ? 'repón según la sed, con electrolitos' : 'sin ejercicio indicado';
     // El rango de DiNicolantonio es para adultos: no lo mostramos a menores de 16 años.
     if (edad < EDAD_MINIMA_SODIO) {
       $('need-na').textContent = '–';
