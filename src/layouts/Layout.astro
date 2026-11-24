@@ -15,6 +15,7 @@ const otherApps = await getOtherApps();
 const links = [
   { path: 'imc/', label: 'IMC' },
   { path: 'agua/', label: 'Agua y electrolitos' },
+  { path: 'sal-por-litro/', label: 'Sal por litro' },
 ];
 ---
 
@@ -25,6 +26,9 @@ const links = [
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <meta name="generator" content={Astro.generator} />
+    <!-- Las calculadoras guardan los datos (también la analítica) en la URL: al pulsar un enlace solo
+         se envía el dominio como Referer, nunca la ruta ni la query. -->
+    <meta name="referrer" content="origin" />
     <link rel="icon" type="image/svg+xml" href={href('favicon.svg')} />
     <link rel="canonical" href={canonical} />
     <link rel="sitemap" type="application/xml" href={href('sitemap.xml')} />

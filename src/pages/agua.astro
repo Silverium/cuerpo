@@ -2,7 +2,8 @@
 import Layout from '../layouts/Layout.astro';
 import ProfileFields from '../components/ProfileFields.astro';
 import NumberField from '../components/NumberField.astro';
-import { ELECTROLITOS } from '../lib/calc';
+import { ELECTROLITOS, SUDOR, salPorLitroDeSodio } from '../lib/calc';
+import { href } from '../lib/paths';
 ---
 
 <Layout
@@ -154,6 +155,7 @@ import { ELECTROLITOS } from '../lib/calc';
               potasio en la misma proporción que pierdes: unos <span id="per-l-na">–</span> de sodio
               (<span id="per-l-salt">–</span> de sal) y <span id="per-l-k">–</span> de potasio por cada litro.
               Reponer el sudor solo con agua baja el sodio de la sangre.
+              {' '}<a href={href(`sal-por-litro/?gl=${salPorLitroDeSodio(SUDOR.na)}`)}>Calcula la sal para tu vaso o tu botella →</a>
             </li>
           </ul>
           <p class="disclaimer">
@@ -224,7 +226,7 @@ import { ELECTROLITOS } from '../lib/calc';
             </li>
             <li>
               Duarte, David (Dr.). Curso de la Academia Unani.
-              <a href="https://www.academiaunani.com/" target="_blank" rel="noopener noreferrer">academiaunani.com</a>
+              {' '}<a href="https://www.academiaunani.com/" target="_blank" rel="noopener noreferrer">academiaunani.com</a>
             </li>
           </ul>
         </section>

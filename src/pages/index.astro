@@ -14,14 +14,15 @@ const website = {
 
 <Layout
   title="Cuerpo · calculadoras corporales"
-  description="Calculadoras de medidas corporales: índice de masa corporal, agua corporal total y electrolitos."
+  description="Calculadoras de medidas corporales: índice de masa corporal, agua corporal total, electrolitos y sal por litro de agua."
 >
   <script is:inline slot="head" type="application/ld+json" set:html={JSON.stringify(website)} />
   <section class="hero">
     <p class="eyebrow">Calculadoras corporales</p>
     <h1>Conoce tus números en segundos.</h1>
     <p class="lead">
-      Calcula tu índice de masa corporal y estima cuánta agua y cuántos electrolitos hay en tu cuerpo. Tus
+      Calcula tu índice de masa corporal, estima cuánta agua y cuántos electrolitos hay en tu cuerpo y
+      cuánta sal echar al agua que bebes. Tus
       datos se guardan en tu navegador y viajan en la URL, así que puedes volver o compartir el resultado con
       un enlace.
     </p>
@@ -48,6 +49,18 @@ const website = {
       </p>
       <span class="go">Calcular agua →</span>
     </a>
+
+    <a class="tool card" href={href('sal-por-litro/')}>
+      <span class="icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 9h8l-1 12H9L8 9Z"></path><path d="M8 9a4 4 0 0 1 8 0"></path><path d="M11 5.5h.01"></path><path d="M13 5.5h.01"></path><path d="M12 3.5h.01"></path></svg>
+      </span>
+      <h2>Sal por litro</h2>
+      <p>
+        Cuántos gramos de sal echar a tu vaso o tu botella según la concentración, con tabla rápida de 50 ml
+        a 1 L.
+      </p>
+      <span class="go">Calcular sal →</span>
+    </a>
   </section>
 
   <section class="how">
@@ -57,7 +70,7 @@ const website = {
     </div>
     <div>
       <h3>Recordado</h3>
-      <p>Tu perfil se guarda en localStorage y se comparte entre las dos calculadoras.</p>
+      <p>Tu perfil se guarda en localStorage y se comparte entre las calculadoras.</p>
     </div>
     <div>
       <h3>Compartible</h3>

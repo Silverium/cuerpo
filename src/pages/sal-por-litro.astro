@@ -1,0 +1,1031 @@
+---
+import Layout from '../layouts/Layout.astro';
+import NumberField from '../components/NumberField.astro';
+import { href } from '../lib/paths';
+import { SUEROS_UNANI_G_L, SAL_MIN_G_L, SAL_MAX_G_L, VASITO_ML } from '../lib/calc';
+
+const RANGE_MAX = 2000;
+const TABLA_ML = [50, 100, 150, 200, 250, 300, 400, 500, 750, 1000];
+/** Tabla para concentraciones de chupito de compensación (más de SAL_CHUPITO_G_L). */
+const TABLA_CHUPITO_ML = [1, 5, 10, 15, 20, 25];
+const filas = [
+  ...TABLA_ML.map((ml) => ({ ml, tabla: 'vaso' })),
+  ...TABLA_CHUPITO_ML.map((ml) => ({ ml, tabla: 'chupito' })),
+];
+---
+
+<Layout
+  title="Sal por litro de agua · Cuerpo"
+  description="Calcula cuántos gramos de sal hay que echar a cada cantidad de agua (en mililitros) según la concentración, con los sueros de 2, 4, 6 y 12 g/L de la dieta Unani."
+>
+  <section class="page-head">
+    <h1>Sal por litro de agua</h1>
+    <p>
+      Cuántos gramos de sal disolver en tu vaso o tu botella para beber con electrolitos. Elige la
+      concentración, mueve la cantidad de agua y comparte el resultado con un enlace.
+    </p>
+  </section>
+
+  <div class="calc">
+    <form class="card" id="form" autocomplete="off">
+      <fieldset>
+        <legend>Agua</legend>
+        <NumberField name="ml" label="Cantidad de agua" unit="ml" min={0} max={20000} step={10} value="500" />
+        <div class="range">
+          <input
+            type="range"
+            id="ml-range"
+            min="0"
+            max={RANGE_MAX}
+            step="10"
+            value="500"
+            aria-label="Cantidad de agua en mililitros"
+          />
+          <div class="range-ticks" id="range-ticks" aria-hidden="true">
+            <span>0</span><span>½ L</span><span>1 L</span><span>1½ L</span><span>2 L</span>
+          </div>
+        </div>
+        <output class="live" id="live" for="ml-range">–</output>
+      </fieldset>
+
+      <fieldset>
+        <legend>Concentración</legend>
+        <NumberField name="gl" label="Sal por litro" unit="g/L" min={SAL_MIN_G_L} max={SAL_MAX_G_L} step={0.01} value={String(SUEROS_UNANI_G_L[0])} />
+        <p class="hint" id="gl-hint"></p>
+        <div class="presets-head">
+          <span class="label" id="presets-title">Sueros Unani</span>
+          <span class="hint">dieta del Dr. David Duarte</span>
+        </div>
+        <div class="presets" role="group" aria-labelledby="presets-title">
+          {
+            SUEROS_UNANI_G_L.map((gL) => (
+              <button type="button" class="preset" data-gl={gL} aria-pressed="false" aria-label={`Suero Unani de ${gL} gramos por litro`}>
+                <span class="preset-label">{gL}</span>
+                <span class="preset-value">g/L</span>
+              </button>
+            ))
+          }
+        </div>
+        <p class="badge hidden" data-tone="warn" id="gl-warn"></p>
+      </fieldset>
+
+      <div class="actions">
+        <button type="button" class="primary" data-share>Copiar enlace</button>
+        <button type="reset">Restablecer</button>
+      </div>
+    </form>
+
+    <div class="stack">
+      <section class="card hidden" id="empty">
+        <p class="empty" id="empty-msg">Introduce una cantidad de agua y una concentración de sal para ver el resultado.</p>
+      </section>
+
+      <div class="stack" id="results">
+        <section class="card result">
+          <figure class="glass" aria-hidden="true">
+            <div class="shots hidden" id="shots">
+              {
+                [0, 1].map((i) => (
+                  <svg viewBox="0 0 60 100" class="shot" data-shot={i}>
+                    <defs>
+                      <clipPath id={`shot-clip-${i}`}>
+                        <path d="M10.5 8 L14.3 89 H45.7 L49.5 8 Z" />
+                      </clipPath>
+                    </defs>
+                    <g clip-path={`url(#shot-clip-${i})`}>
+                      <rect class="shot-fill" x="0" y="0" width="60" height="100" />
+                    </g>
+                    {[5, 10, 15, 20].map((m) => {
+                      const y = 89 - (m / VASITO_ML) * 76;
+                      return (
+                        <>
+                          <line class="shot-tick" x1="38" x2="46" y1={y} y2={y} />
+                          <text class="shot-label" x="36" y={y + 2.4} text-anchor="end">{m}</text>
+                        </>
+                      );
+                    })}
+                    <path class="glass-outline" d="M8 6 L12 90 Q12.5 94 17 94 H43 Q47.5 94 48 90 L52 6" />
+                  </svg>
+                ))
+              }
+            </div>
+            <svg viewBox="0 0 120 150" id="glass-svg">
+              <defs>
+                <clipPath id="glass-clip">
+                  <path d="M13 10 L24.6 141 H95.4 L107 10 Z"></path>
+                </clipPath>
+              </defs>
+              <g clip-path="url(#glass-clip)">
+                <g class="water" id="water">
+                  <path
+                    class="wave back"
+                    d="M-120 4 Q-105 0 -90 4 T-60 4 T-30 4 T0 4 T30 4 T60 4 T90 4 T120 4 T150 4 T180 4 T210 4 T240 4 V200 H-120 Z"
+                  ></path>
+                  <path
+                    class="wave front"
+                    d="M-120 6 Q-105 2 -90 6 T-60 6 T-30 6 T0 6 T30 6 T60 6 T90 6 T120 6 T150 6 T180 6 T210 6 T240 6 V200 H-120 Z"
+                  ></path>
+                </g>
+                <g class="grains" id="grains">
+                  <circle cx="44" cy="137" r="1.6"></circle>
+                  <circle cx="52" cy="138.5" r="1.3"></circle>
+                  <circle cx="60" cy="137.5" r="1.7"></circle>
+                  <circle cx="68" cy="138.6" r="1.2"></circle>
+                  <circle cx="76" cy="137.2" r="1.5"></circle>
+                  <circle cx="48" cy="134.6" r="1.2"></circle>
+                  <circle cx="57" cy="134.4" r="1.4"></circle>
+                  <circle cx="64" cy="133.8" r="1.2"></circle>
+                  <circle cx="72" cy="134.8" r="1.3"></circle>
+                </g>
+              </g>
+              <path class="glass-outline" d="M10 8 L22 142 Q22.5 146 27 146 H93 Q97.5 146 98 142 L110 8"></path>
+              <path class="glass-shine" d="M22 22 L29 112"></path>
+            </svg>
+            <figcaption id="glass-scale">–</figcaption>
+          </figure>
+
+          <div class="result-main">
+            <h2 id="result-title">Sal para el agua</h2>
+            <div class="big">
+              <strong id="sal">–</strong>
+              <span class="unit">g de sal</span>
+            </div>
+            <span class="badge" data-tone="ok" id="tsp"></span>
+            <div class="stats">
+              <div class="stat">
+                <div class="k">Sodio</div>
+                <div class="v" id="na-mg">–</div>
+                <div class="s" id="na-mmol">–</div>
+              </div>
+              <div class="stat">
+                <div class="k">Concentración</div>
+                <div class="v" id="conc">–</div>
+                <div class="s" id="conc-s">–</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Tabla rápida</h2>
+          <p class="hint">
+            Con <strong id="tabla-gl">–</strong><span id="tabla-chupito" class="hidden">, en chupitos de
+            compensación</span>. Toca una fila para usar esa cantidad.
+          </p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr><th>Agua</th><th>Sal</th><th>Sodio</th><th>Cucharaditas</th></tr>
+              </thead>
+              <tbody id="tabla">
+                {
+                  filas.map(({ ml, tabla }) => (
+                    <tr data-ml={ml} data-tabla={tabla} class:list={{ hidden: tabla === 'chupito' }}>
+                      <td>
+                        <button type="button" class="row-pick" data-ml={ml}>
+                          {ml < 1000 ? `${ml} ml` : `${ml / 1000} L`}
+                        </button>
+                      </td>
+                      <td data-col="sal">–</td>
+                      <td data-col="na">–</td>
+                      <td data-col="tsp">–</td>
+                    </tr>
+                  ))
+                }
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Cómo prepararla</h2>
+          <ul class="tips">
+            <li>
+              <strong>Pesa la sal.</strong> Son cantidades pequeñas: usa una báscula de precisión (0,01 g). Si
+              la tuya solo marca gramos, prepara un litro o más y sírvete por partes.
+            </li>
+            <li>
+              <strong>Cucharaditas, solo de referencia.</strong> Una cucharadita rasa de sal fina pesa unos 6 g,
+              pero varía mucho con el tipo de sal y la cuchara.
+            </li>
+            <li>
+              <strong>Sal normal.</strong> Sal de mesa, marina o del Himalaya son casi todo cloruro sódico. La
+              sal «light» o potásica lleva menos sodio y no sirve con estas cifras.
+            </li>
+            <li>
+              <strong>Chupitos de compensación.</strong> Por encima de 20 g/L la mezcla no es para beber en vaso:
+              se toma en chupitos de pocos mililitros para compensar líquidos que has bebido sin sal, como agua
+              sola o una pieza de fruta. Con esas concentraciones, la tabla rápida pasa a chupitos de 1 a 25 ml y el slider, a 0–40 ml.
+            </li>
+            <li>
+              <strong>Bebe según la sed.</strong> La sal no obliga a beber más. Mira cuánta agua y sodio
+              pierdes sudando en la <a href={href('agua/')}>calculadora de agua y electrolitos</a>.
+            </li>
+          </ul>
+          <p class="disclaimer">
+            <strong>Aviso:</strong> no es consejo médico. Si tienes
+            {' '}<a href="#sal-sensible">hipertensión sensible a la sal</a>, enfermedad renal o insuficiencia
+            cardiaca, o una restricción de sal o de líquidos, consulta con tu médico antes de añadir sal al agua.
+          </p>
+          <p class="note">
+            Los botones rápidos son las concentraciones de los sueros de la dieta Unani del Dr. David Duarte
+            ({SUEROS_UNANI_G_L.join(', ').replace(/, (\d+)$/, ' y $1')} g de sal por litro). Cuál tomar y cuánto
+            depende de esa dieta: sigue sus indicaciones.
+            {' '}<a href="https://www.academiaunani.com/" target="_blank" rel="noopener noreferrer">academiaunani.com</a>
+          </p>
+        </section>
+
+        <section class="card" id="poca-sal">
+          <h2>Los riesgos de comer poca sal</h2>
+          <p class="lead">
+            Reducir la sal baja la tensión menos de lo que se suele pensar, y no sale gratis: el cuerpo
+            compensa la falta de sodio activando hormonas que lo retienen y acelerando el corazón.
+          </p>
+
+          <h3>Qué pasa al quitar sal (ensayos aleatorizados)</h3>
+          <div class="stats">
+            <div class="stat">
+              <div class="k">Tensión sistólica, con tensión normal</div>
+              <div class="v">−1,1 mmHg</div>
+              <div class="s">95 ensayos · Cochrane 2020</div>
+            </div>
+            <div class="stat">
+              <div class="k">Tensión sistólica, con hipertensión</div>
+              <div class="v">−5,7 mmHg</div>
+              <div class="s">88 ensayos · Cochrane 2020</div>
+            </div>
+            <div class="stat">
+              <div class="k">Frecuencia cardiaca</div>
+              <div class="v">+1,65 lpm</div>
+              <div class="s">+2,4 %, tanto como baja la tensión (2,5 %) · 63 ensayos</div>
+            </div>
+            <div class="stat">
+              <div class="k">Hormonas que retienen sodio</div>
+              <div class="v">↑ renina, aldosterona</div>
+              <div class="s">y noradrenalina, una hormona del estrés</div>
+            </div>
+            <div class="stat">
+              <div class="k">Grasas en sangre</div>
+              <div class="v">↑ colesterol, triglicéridos</div>
+              <div class="s">+5,2 y +7,1 mg/dL</div>
+            </div>
+          </div>
+          <p class="note">
+            Reducción de sodio de 203 a 65 mmol al día (de unos 12 a 4 g de sal) en participantes de raza blanca.
+            Fuentes: revisión Cochrane de Graudal y colaboradores (2020) y su metaanálisis sobre frecuencia
+            cardiaca (2016).
+          </p>
+
+          <h3>Qué se ha observado en la población</h3>
+          <div class="stats">
+            <div class="stat">
+              <div class="k">Menos de 3 g de sodio al día, sin hipertensión</div>
+              <div class="v">+26 %</div>
+              <div class="s">eventos cardiovasculares y muerte</div>
+            </div>
+            <div class="stat">
+              <div class="k">Menos de 3 g de sodio al día, con hipertensión</div>
+              <div class="v">+34 %</div>
+              <div class="s">eventos cardiovasculares y muerte</div>
+            </div>
+            <div class="stat">
+              <div class="k">7 g o más al día, sin hipertensión</div>
+              <div class="v">sin aumento</div>
+              <div class="s">riesgo 0,90, no significativo</div>
+            </div>
+            <div class="stat">
+              <div class="k">7 g o más al día, con hipertensión</div>
+              <div class="v">+23 %</div>
+              <div class="s">eventos cardiovasculares y muerte</div>
+            </div>
+          </div>
+          <p class="note">
+            Mente y colaboradores (2016): 133.118 personas de 49 países seguidas una media de 4,2 años,
+            comparadas con quienes toman 4–5 g de sodio al día (10–13 g de sal). 3 g de sodio son unos 7,6 g de
+            sal y 7 g de sodio, unos 18 g. El estudio PURE (2014, 101.945 personas) encontró lo mismo: menos de
+            3 g se asoció a un 27 % más de riesgo, y 7 g o más, a un 15 % más.
+          </p>
+
+          <p class="caveat">
+            <strong>Con matices.</strong> Una frecuencia cardiaca en reposo más alta se asocia a más
+            insuficiencia cardiaca y mortalidad, pero ningún estudio ha medido si la subida por comer poca sal es
+            más dañina que la bajada de tensión que se consigue. Los datos de mortalidad son observacionales:
+            muestran una asociación (la curva en J), no prueban la causa. Lo que sí indican es que, en personas
+            sin hipertensión, comer poca sal se asocia a más riesgo que comer mucha.
+          </p>
+        </section>
+
+        <section class="card" id="sal-sensible">
+          <h2>Hipertensión sensible a la sal</h2>
+          <p class="lead">
+            Una persona es <strong>sensible a la sal</strong> cuando su tensión arterial sube de forma clara al
+            comer más sal y baja al comer menos. A la mayoría la tensión apenas le cambia con la sal: son
+            {' '}<strong>resistentes a la sal</strong>.
+          </p>
+
+          <h3>Cuánta gente la tiene</h3>
+          <p class="text">
+            No hay una cifra fiable. El estudio clásico de Weinberger (1986), con 576 personas, encontró
+            bastantes más sensibles entre los hipertensos que entre quienes tenían la tensión normal. Pero el
+            porcentaje cambia según el umbral (en ese estudio, que la tensión media bajara al menos 10 mmHg al
+            quitar la sal) y la prueba da resultados distintos si se repite:
+          </p>
+
+          <div class="incidence">
+            <div class="stat">
+              <div class="k">Misma clasificación a los 6 meses</div>
+              <div class="v">53–60 %</div>
+              <div class="meter" aria-hidden="true"><span style="width: 60%"></span></div>
+              <div class="s">de 30 hipertensos que repitieron la prueba (Gerdts, 1999)</div>
+            </div>
+            <div class="stat">
+              <div class="k">Fiabilidad de la prueba</div>
+              <div class="v">κ = 0,38</div>
+              <div class="meter" aria-hidden="true"><span style="width: 38%"></span></div>
+              <div class="s">baja, en 66 adultos con tensión normal (Mattes y Falkner, 1999)</div>
+            </div>
+            <div class="stat">
+              <div class="k">Hipertensión en España</div>
+              <div class="v">33 %</div>
+              <div class="meter" aria-hidden="true"><span style="width: 33%"></span></div>
+              <div class="s">adultos de 30 a 79 años en 2019 (Banegas, 2024)</div>
+            </div>
+          </div>
+          <p class="note">
+            Es decir: al repetir la prueba, entre el 40 y el 47 % de los hipertensos cambió de clasificación.
+            Por eso algunos autores consideran que la etiqueta, aunque tenga base fisiológica, sirve de poco en
+            la práctica (Galletti y Strazzullo, 2016).
+          </p>
+
+          <h3>Por qué pasa</h3>
+          <p class="text">
+            En las personas sensibles, el riñón elimina peor el sodio extra. Para expulsarlo necesita más
+            presión, así que el cuerpo retiene agua, aumenta el volumen de sangre y sube la tensión. Influyen la
+            genética, el sistema renina-angiotensina y el estado de los vasos sanguíneos.
+          </p>
+
+          <h3>Cómo saber si lo eres</h3>
+          <p class="text">
+            No hay un análisis sencillo. <strong>Si tienes hipertensión, enfermedad renal o insuficiencia
+            cardiaca, consulta con tu médico antes de añadir sal al agua</strong>, y si te da el visto bueno,
+            hazlo con su seguimiento. Si estás sano, puedes medirte la tensión en casa (por la mañana, sentado,
+            varios días) antes de empezar y después de unas semanas. Si sube de forma clara, reduce la sal.
+          </p>
+          <p class="note">
+            Importa aunque tengas la tensión normal: en el seguimiento de Weinberger (2001), las personas con
+            tensión normal pero sensibles a la sal tuvieron una mortalidad a largo plazo parecida a la de las
+            personas con hipertensión.
+          </p>
+
+          <h3>Bibliografía</h3>
+          <ul class="biblio">
+            <li>
+              Weinberger MH, et al. «Definitions and characteristics of sodium sensitivity and blood pressure
+              resistance». <cite>Hypertension</cite>. 1986;8(6 Pt 2):II127–34. PMID 3522418.
+            </li>
+            <li>
+              Weinberger MH, et al. «Salt sensitivity, pulse pressure, and death in normal and hypertensive
+              humans». <cite>Hypertension</cite>. 2001;37(2 Pt 2):429–32. PMID 11230313.
+            </li>
+            <li>
+              Gerdts E, et al. «Reproducibility of salt sensitivity testing using a dietary approach in essential
+              hypertension». <cite>J Hum Hypertens</cite>. 1999;13:375–84. PMID 10408587.
+            </li>
+            <li>
+              Mattes RD, Falkner B. «Salt-sensitivity classification in normotensive adults».
+              {' '}<cite>Clin Sci</cite>. 1999;96:449–59. PMID 10209076.
+            </li>
+            <li>
+              Galletti F, Strazzullo P. «The blood pressure-salt sensitivity paradigm: pathophysiologically sound
+              yet of no practical value». <cite>Nephrol Dial Transplant</cite>. 2016. PMID 27521374.
+            </li>
+            <li>
+              Elijovich F, Weinberger MH, Anderson CAM, et al. «Salt sensitivity of blood pressure: a scientific
+              statement from the American Heart Association». <cite>Hypertension</cite>. 2016;68(3):e7–e46.
+              PMID 27443572.
+            </li>
+            <li>
+              Banegas JR, et al. «Numerical values and impact of hypertension in Spain».
+              {' '}<cite>Rev Esp Cardiol</cite>. 2024;77(9):767–78. PMID 38701882.
+            </li>
+            <li>
+              Graudal NA, Hubeck-Graudal T, Jurgens G. «Effects of low sodium diet versus high sodium diet on
+              blood pressure, renin, aldosterone, catecholamines, cholesterol, and triglyceride».
+              {' '}<cite>Cochrane Database Syst Rev</cite>. 2020;12:CD004022. PMID 33314019.
+            </li>
+            <li>
+              Graudal NA, Hubeck-Graudal T, Jürgens G. «Reduced dietary sodium intake increases heart rate. A
+              meta-analysis of 63 randomized controlled trials including 72 study populations».
+              {' '}<cite>Front Physiol</cite>. 2016;7:111. PMID 27047393.
+            </li>
+            <li>
+              Mente A, O'Donnell M, Rangarajan S, et al. «Associations of urinary sodium excretion with
+              cardiovascular events in individuals with and without hypertension: a pooled analysis of data from
+              four studies». <cite>Lancet</cite>. 2016;388(10043):465–75. PMID 27216139.
+            </li>
+            <li>
+              O'Donnell M, et al. «Urinary sodium and potassium excretion, mortality, and cardiovascular events».
+              {' '}<cite>N Engl J Med</cite>. 2014;371(7):612–23. PMID 25119607.
+            </li>
+            <li>
+              Duarte, David (Dr.). Curso de la Academia Unani.
+              {' '}<a href="https://www.academiaunani.com/" target="_blank" rel="noopener noreferrer">academiaunani.com</a>
+            </li>
+            <li>
+              DiNicolantonio, James. <cite>The Salt Fix</cite>. Nueva York: Harmony Books, 2017. Edición en
+              español: <cite>La solución está en la sal</cite>.
+            </li>
+          </ul>
+        </section>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  /* ── Slider ── */
+
+  .range {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .range input {
+    --p: 25%;
+    appearance: none;
+    width: 100%;
+    height: 28px;
+    margin: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .range input::-webkit-slider-runnable-track {
+    height: 8px;
+    border-radius: 999px;
+    background: linear-gradient(to right, var(--is) var(--p), var(--surface-2) var(--p));
+  }
+
+  .range input::-moz-range-track {
+    height: 8px;
+    border-radius: 999px;
+    background: var(--surface-2);
+  }
+
+  .range input::-moz-range-progress {
+    height: 8px;
+    border-radius: 999px;
+    background: var(--is);
+  }
+
+  .range input::-webkit-slider-thumb {
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    margin-top: -8px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 3px solid var(--accent);
+    box-shadow: 0 1px 4px rgb(0 0 0 / 0.25);
+  }
+
+  .range input::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 3px solid var(--accent);
+    box-shadow: 0 1px 4px rgb(0 0 0 / 0.25);
+  }
+
+  .range input:focus-visible {
+    outline: none;
+  }
+
+  .range input:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 4px var(--accent-soft);
+  }
+
+  .range input:focus-visible::-moz-range-thumb {
+    box-shadow: 0 0 0 4px var(--accent-soft);
+  }
+
+  .range-ticks {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  .live {
+    display: block;
+    text-align: center;
+    padding: 0.5rem;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--accent-soft) 55%, transparent);
+    color: var(--accent);
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── Concentraciones ── */
+
+  .presets-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: -0.35rem;
+  }
+
+  .presets {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.4rem;
+  }
+
+  .preset {
+    display: grid;
+    justify-items: center;
+    gap: 0;
+    padding: 0.45rem 0.25rem;
+    background: var(--bg);
+  }
+
+  .preset-label {
+    font-weight: 700;
+    font-size: 1.25rem;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .preset-value {
+    font-size: 0.78rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .preset[aria-pressed='true'] {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    box-shadow: inset 0 0 0 1px var(--accent);
+  }
+
+  .preset[aria-pressed='true'] .preset-label,
+  .preset[aria-pressed='true'] .preset-value {
+    color: var(--accent);
+  }
+
+  #gl-warn {
+    margin: 0;
+    white-space: normal;
+    border-radius: 10px;
+    font-weight: 500;
+  }
+
+  /* ── Hipertensión sensible a la sal ── */
+
+  #sal-sensible .lead,
+  #sal-sensible .text {
+    margin: 0 0 1rem;
+  }
+
+  #sal-sensible h3 {
+    margin-top: 1.25rem;
+  }
+
+  .incidence {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+    gap: 0.75rem;
+  }
+
+  .incidence .v {
+    font-size: 1.6rem;
+  }
+
+  .meter {
+    height: 8px;
+    margin: 0.4rem 0;
+    border-radius: 999px;
+    background: var(--border);
+    overflow: hidden;
+  }
+
+  .meter span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--warn);
+  }
+
+  #poca-sal .lead {
+    margin: 0 0 1rem;
+  }
+
+  #poca-sal h3 {
+    margin-top: 1.25rem;
+  }
+
+  #poca-sal .stat .v {
+    font-size: 1.1rem;
+  }
+
+  .caveat {
+    margin: 1rem 0 0;
+    padding: 0.75rem 0.9rem;
+    border-left: 4px solid var(--low);
+    border-radius: 10px;
+    font-size: 0.9rem;
+    background: color-mix(in srgb, var(--low) 10%, transparent);
+  }
+
+  .biblio {
+    margin: 0.25rem 0 0;
+    padding-left: 1.25rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  /* ── Resultado ── */
+
+  .result {
+    display: grid;
+    grid-template-columns: 140px minmax(0, 1fr);
+    gap: 1.5rem;
+    align-items: center;
+  }
+
+  @media (max-width: 480px) {
+    .result {
+      grid-template-columns: 96px minmax(0, 1fr);
+      gap: 1rem;
+    }
+  }
+
+  .result-main {
+    display: grid;
+    gap: 0.6rem;
+    justify-items: start;
+    min-width: 0;
+  }
+
+  .result-main h2 {
+    margin: 0;
+  }
+
+  .result-main .stats {
+    width: 100%;
+    margin-top: 0.25rem;
+  }
+
+  .glass {
+    margin: 0;
+    display: grid;
+    gap: 0.35rem;
+    justify-items: center;
+  }
+
+  .glass svg {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  .glass figcaption {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  .shots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+  }
+
+  /* Más específico que `.glass svg` (ancho 100 %). */
+  .glass .shot {
+    width: min(64px, 48%);
+  }
+
+  .shot-fill {
+    fill: color-mix(in srgb, var(--is) 60%, transparent);
+    transition: transform 0.35s ease;
+  }
+
+  .shot-tick {
+    stroke: var(--muted);
+    stroke-width: 1.5;
+  }
+
+  .shot-label {
+    fill: var(--muted);
+    font-size: 7px;
+    font-family: inherit;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .shot-fill {
+      transition: none;
+    }
+  }
+
+  .glass-outline {
+    fill: none;
+    stroke: var(--muted);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .glass-shine {
+    stroke: var(--surface);
+    stroke-width: 3;
+    stroke-linecap: round;
+    opacity: 0.6;
+  }
+
+  .water {
+    transition: transform 0.35s ease;
+  }
+
+  .wave {
+    animation: wave 3.2s linear infinite;
+  }
+
+  .wave.back {
+    fill: color-mix(in srgb, var(--is) 35%, transparent);
+    animation-duration: 4.6s;
+    animation-direction: reverse;
+  }
+
+  .wave.front {
+    fill: color-mix(in srgb, var(--is) 60%, transparent);
+  }
+
+  @keyframes wave {
+    to {
+      transform: translateX(120px);
+    }
+  }
+
+  .grains circle {
+    fill: var(--text);
+    opacity: 0.35;
+    transition: opacity 0.25s ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wave {
+      animation: none;
+    }
+    .water {
+      transition: none;
+    }
+  }
+
+  /* ── Tabla ── */
+
+  .row-pick {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--accent);
+    font-weight: 600;
+    font-size: inherit;
+  }
+
+  #tabla tr {
+    cursor: pointer;
+  }
+
+  #tabla tr:hover td {
+    background: var(--surface-2);
+  }
+
+  #tabla tr.current td {
+    font-weight: 700;
+    background: var(--accent-soft);
+  }
+
+  .table-scroll {
+    margin-top: 0.5rem;
+  }
+
+  /* ── Consejos ── */
+
+  .tips {
+    margin: 0 0 1rem;
+    padding: 0.85rem 1rem 0.85rem 2rem;
+    border-left: 4px solid var(--accent);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--accent-soft) 55%, transparent);
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  .tips strong {
+    color: var(--accent);
+  }
+
+  .disclaimer {
+    margin: 0 0 1rem;
+    padding: 0.6rem 0.85rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    color: var(--warn);
+    background: color-mix(in srgb, var(--warn) 10%, transparent);
+  }
+
+</style>
+
+<script>
+  import { syncForm, bindShareButton, num } from '../lib/sync';
+  import {
+    salParaAgua,
+    MASA_MOLAR_SAL,
+    SUEROS_UNANI_G_L,
+    SAL_ISOTONICA_G_L,
+    SAL_CHUPITO_G_L,
+    SAL_MIN_G_L,
+    SAL_MAX_G_L,
+    VASITO_ML,
+  } from '../lib/calc';
+
+  const f0 = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 });
+  const f1 = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 1 });
+  const f2 = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+  const $ = (id: string) => document.getElementById(id)!;
+
+  /** Gramos con 2 decimales (las cantidades suelen ser menores de 1 g); 1 decimal a partir de 10 g. */
+  const gramos = (g: number) => (g >= 10 ? `${f1.format(g)} g` : g > 0 && g < 0.005 ? '< 0,01 g' : `${f2.format(g)} g`);
+  const sodio = (mg: number) => (mg >= 1000 ? `${f2.format(mg / 1000)} g` : `${f0.format(mg)} mg`);
+  // Litros con hasta 3 decimales: 1.050 ml se muestra como 1,05 L, no redondeado a 1,1 L.
+  const fL = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 3 });
+  // Por debajo de 10 ml, con un decimal: en los chupitos, 1,5 ml no puede verse como 2 ml.
+  const volumen = (ml: number) =>
+    ml >= 1000 ? `${fL.format(ml / 1000)} L` : `${(ml < 10 ? f1 : f0).format(ml)} ml`;
+
+  /** Capacidades del vaso del dibujo: la menor que quepa en la cantidad elegida. */
+  const ESCALAS_ML = [50, 250, 500, 1000, 1500, 2000];
+
+  /** Rango del slider: vaso (0–2 L, de 10 en 10 ml) o chupito de compensación (0–40 ml, de 1 en 1). */
+  const SLIDER = {
+    vaso: { max: 2000, step: 10, ticks: ['0', '½ L', '1 L', '1½ L', '2 L'] },
+    chupito: { max: 40, step: 1, ticks: ['0', '10 ml', '20 ml', '30 ml', '40 ml'] },
+  };
+  /** Altura útil del vaso en el SVG: del fondo (y = 141) al borde de llenado (y = 16). */
+  const FONDO_Y = 141;
+  const ALTO_Y = 125;
+  /** Lo mismo en el vasito medidor: fondo en y = 89 y 20 ml en y = 13. */
+  const VASITO_FONDO_Y = 89;
+  const VASITO_ALTO_Y = 76;
+
+  const form = document.getElementById('form') as HTMLFormElement;
+  const mlInput = form.elements.namedItem('ml') as HTMLInputElement;
+  const glInput = form.elements.namedItem('gl') as HTMLInputElement;
+  const range = $('ml-range') as HTMLInputElement;
+  const presets = Array.from(form.querySelectorAll<HTMLButtonElement>('.preset'));
+  const rows = Array.from(document.querySelectorAll<HTMLTableRowElement>('#tabla tr'));
+  const grains = Array.from(document.querySelectorAll<SVGCircleElement>('#grains circle'));
+  const shots = Array.from(document.querySelectorAll<SVGSVGElement>('#shots .shot'));
+
+  bindShareButton(form.querySelector('[data-share]'));
+
+  /** Cambia un campo y avisa al formulario para que recalcule y actualice la URL. */
+  const setValue = (input: HTMLInputElement, value: string) => {
+    input.value = value;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  };
+
+  // El slider no tiene `name`: no va a la URL, solo escribe en el campo numérico `ml`.
+  // Su listener se ejecuta antes que el del formulario (burbuja), así que el valor ya está puesto.
+  range.addEventListener('input', () => (mlInput.value = range.value));
+
+  for (const button of presets) button.addEventListener('click', () => setValue(glInput, button.dataset.gl!));
+
+  for (const row of rows) {
+    row.addEventListener('click', () => {
+      setValue(mlInput, row.dataset.ml!);
+      // En móvil el resultado queda fuera de la pantalla: lo traemos a la vista.
+      if (matchMedia('(max-width: 820px)').matches) {
+        document.querySelector('.result')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    });
+  }
+
+  const setRange = (ml: number) => {
+    const max = Number(range.max);
+    // No tocamos el slider mientras se arrastra, para que no salte por el redondeo del step.
+    if (document.activeElement !== range) range.value = String(ml);
+    range.style.setProperty('--p', `${(Math.min(Math.max(ml, 0), max) / max) * 100}%`);
+  };
+
+  syncForm(form, 'sal-por-litro', (v) => {
+    const ml = num(v.ml);
+    const gl = num(v.gl);
+    // El `max` del input no impide escribir más: el límite se comprueba aquí.
+    const demasiada = gl != null && gl > SAL_MAX_G_L;
+    const poca = gl != null && gl < SAL_MIN_G_L;
+    const valid = ml != null && gl != null && ml >= 0 && !poca && !demasiada;
+    $('empty-msg').textContent = demasiada
+      ? `Más de ${SAL_MAX_G_L} g/L no se disuelve: el agua se satura de sal a unos 360 g por litro.`
+      : poca
+        ? `La concentración mínima es de ${SAL_MIN_G_L} g de sal por litro.`
+        : 'Introduce una cantidad de agua y una concentración de sal para ver el resultado.';
+
+    // Concentración de chupito de compensación: slider y tabla pasan a pocos mililitros.
+    const modo = gl != null && gl > SAL_CHUPITO_G_L ? 'chupito' : 'vaso';
+    if (range.dataset.modo !== modo) {
+      const s = SLIDER[modo];
+      range.dataset.modo = modo;
+      range.max = String(s.max);
+      range.step = String(s.step);
+      mlInput.step = String(s.step);
+      $('range-ticks').querySelectorAll('span').forEach((span, i) => (span.textContent = s.ticks[i]));
+      for (const row of rows) row.classList.toggle('hidden', row.dataset.tabla !== modo);
+      $('tabla-chupito').classList.toggle('hidden', modo !== 'chupito');
+    }
+
+    if (ml != null) setRange(ml);
+    for (const button of presets) {
+      button.setAttribute('aria-pressed', String(gl != null && Math.abs(Number(button.dataset.gl) - gl) < 0.005));
+    }
+
+    $('empty').classList.toggle('hidden', valid);
+    $('results').classList.toggle('hidden', !valid);
+    const suero = gl == null ? undefined : SUEROS_UNANI_G_L.find((s) => Math.abs(s - gl) < 0.005);
+
+    if (!valid) {
+      $('live').textContent = '–';
+      $('gl-hint').textContent = '';
+      $('gl-warn').classList.add('hidden');
+      return;
+    }
+
+    const r = salParaAgua(ml, gl);
+    const mmolL = (gl / MASA_MOLAR_SAL) * 1000;
+
+    /* Formulario */
+    $('live').textContent = `${volumen(ml)} → ${gramos(r.salG)} de sal`;
+    $('gl-hint').textContent = `≈ ${f0.format(mmolL)} mmol/L de sodio · ${f2.format(gl / 10)} % de sal`;
+    const salada = gl > SAL_ISOTONICA_G_L;
+    $('gl-warn').classList.toggle('hidden', !salada);
+    $('gl-warn').textContent =
+      modo === 'chupito'
+        ? `Más de ${SAL_CHUPITO_G_L} g/L: concentración de chupito de compensación, para compensar líquidos que ` +
+          'has bebido sin sal. Tómala solo en chupitos de pocos mililitros: en más cantidad, aunque estés ' +
+          'habituado, puede subir peligrosamente el sodio en sangre y causar sed, náuseas, vómitos o diarrea.'
+        : salada
+          ? `Más salada que la sangre (más de ${SAL_ISOTONICA_G_L} g/L). Si tu cuerpo no está habituado a esta ` +
+            'proporción, te va a sentar mal: sed, náuseas, vómitos, diarrea o una subida peligrosa del sodio en sangre.'
+          : '';
+
+    /* Resultado */
+    $('result-title').textContent = modo === 'chupito' ? 'Gramos de sal en el agua' : `Sal para ${volumen(ml)} de agua`;
+    $('sal').textContent = gramos(r.salG).replace(/ g$/, '');
+    $('tsp').textContent = `≈ ${f2.format(r.cucharaditas)} cucharaditas rasas`;
+    $('na-mg').textContent = sodio(r.sodioMg);
+    $('na-mmol').textContent = `${f1.format(r.sodioMmol)} mmol`;
+    $('conc').textContent = `${f2.format(gl)} g/L`;
+    $('conc-s').textContent = suero ? `suero Unani de ${suero} g/L` : `≈ ${f0.format(mmolL)} mmol/L de sodio`;
+
+    /* Dibujo: vasitos medidores de 20 ml para los chupitos, vaso con escala automática para el resto */
+    $('shots').classList.toggle('hidden', modo !== 'chupito');
+    $('glass-svg').classList.toggle('hidden', modo === 'chupito');
+    if (modo === 'chupito') {
+      const vasitos = Math.max(1, Math.ceil(ml / VASITO_ML));
+      // Se dibujan dos como mucho: el primero lleno si hay más de 20 ml, el segundo con el resto.
+      shots.forEach((svg, i) => {
+        const restante = Math.min(Math.max(ml - i * VASITO_ML, 0), VASITO_ML);
+        svg.classList.toggle('hidden', i > 0 && vasitos < 2);
+        const fill = svg.querySelector<SVGRectElement>('.shot-fill')!;
+        fill.style.transform = `translateY(${VASITO_FONDO_Y - (restante / VASITO_ML) * VASITO_ALTO_Y}px)`;
+      });
+      $('glass-scale').textContent =
+        `${volumen(ml)} · ${vasitos} ${vasitos === 1 ? 'vasito medidor' : 'vasitos medidores'} de ${VASITO_ML} ml`;
+    } else {
+      const escala = ESCALAS_ML.find((e) => e >= ml) ?? Math.ceil(ml / 1000) * 1000;
+      const nivel = escala > 0 ? ml / escala : 0;
+      $('water').style.transform = `translateY(${FONDO_Y - nivel * ALTO_Y}px)`;
+      $('glass-scale').textContent = `vaso de ${volumen(escala)}`;
+    }
+    // Granos de sal en el fondo: más cuanto más concentrada (9 granos ≈ 4 g/L o más).
+    const visibles = r.salG > 0 ? Math.max(1, Math.min(grains.length, Math.round((gl / 4) * grains.length))) : 0;
+    grains.forEach((g, i) => (g.style.opacity = i < visibles ? '' : '0'));
+
+    /* Tabla */
+    $('tabla-gl').textContent = `${f2.format(gl)} g de sal por litro`;
+    for (const row of rows) {
+      const t = salParaAgua(Number(row.dataset.ml), gl);
+      const cell = (col: string) => row.querySelector(`[data-col="${col}"]`)!;
+      cell('sal').textContent = gramos(t.salG);
+      cell('na').textContent = sodio(t.sodioMg);
+      cell('tsp').textContent = f2.format(t.cucharaditas);
+      row.classList.toggle('current', Number(row.dataset.ml) === ml);
+    }
+  });
+</script>

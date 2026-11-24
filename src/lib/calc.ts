@@ -141,6 +141,46 @@ export const SAL_POR_SODIO = 58.44 / 22.99;
 /** Gramos de sal en una cucharadita rasa de sal de mesa. */
 export const SAL_POR_CUCHARADITA = 6;
 
+/* ───────────────────────── Sal por litro ───────────────────────── */
+
+/** Masa molar de la sal (NaCl, g/mol): cada mmol de sodio va con 58,44 mg de sal. */
+export const MASA_MOLAR_SAL = 58.44;
+/** Concentración de sal del suero fisiológico (0,9 %), isotónico con la sangre (g/L). */
+export const SAL_ISOTONICA_G_L = 9;
+/**
+ * Por encima de esta concentración (g/L) la mezcla es para chupitos de compensación: unos pocos
+ * mililitros para compensar líquidos bebidos sin sal, no para beber en vaso.
+ */
+export const SAL_CHUPITO_G_L = 20;
+/** Concentración mínima de la calculadora (g/L). */
+export const SAL_MIN_G_L = 1;
+/** Límite de la calculadora (g/L): el agua se satura de sal a unos 360 g por litro a 20 °C. */
+export const SAL_MAX_G_L = 350;
+/** Capacidad del vasito medidor de los chupitos de compensación (ml). */
+export const VASITO_ML = 20;
+
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+/** Gramos de sal por litro que dan una concentración de sodio en mmol/L (redondeado a 0,01 g). */
+export const salPorLitroDeSodio = (sodioMmolL: number) => round2((sodioMmolL * MASA_MOLAR_SAL) / 1000);
+
+/**
+ * Concentraciones de los sueros de la dieta Unani del Dr. David Duarte (Academia Unani), en gramos de
+ * sal por litro, de menos a más salado.
+ */
+export const SUEROS_UNANI_G_L = [2, 4, 6, 12] as const;
+
+/** Sal y sodio que hay que disolver en `ml` mililitros de agua para una concentración en g/L. */
+export function salParaAgua(ml: number, salGPorLitro: number) {
+  const salG = (ml / 1000) * salGPorLitro;
+  return {
+    salG,
+    sodioMg: (salG / SAL_POR_SODIO) * 1000,
+    sodioMmol: (salG / MASA_MOLAR_SAL) * 1000,
+    cucharaditas: salG / SAL_POR_CUCHARADITA,
+  };
+}
+
 /**
  * Referencia orientativa de agua total diaria (L), incluida la de los alimentos.
  * Base: ingesta adecuada de la EFSA (2,5 L hombres, 2,0 L mujeres) o 35 mL/kg si es mayor,
